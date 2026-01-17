@@ -1,5 +1,8 @@
 package com.example.lunalash.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -43,6 +46,13 @@ public class OperationItemEntity {
 
     @Column(columnDefinition = "TEXT")
     private String remark;
+    
+    @OneToMany(
+	    mappedBy = "operationItem",
+	    cascade = CascadeType.ALL,
+	    orphanRemoval = true
+	)
+	private List<EyelashAreaDetailEntity> areaDetails = new ArrayList<>();
 
     // ===== Getter / Setter =====
 
@@ -125,4 +135,7 @@ public class OperationItemEntity {
     public void setRemark(String remark) {
         this.remark = remark;
     }
+
+    public List<EyelashAreaDetailEntity> getAreaDetails() { return areaDetails; }
+    public void setAreaDetails(List<EyelashAreaDetailEntity> areaDetails) { this.areaDetails = areaDetails; }
 }
