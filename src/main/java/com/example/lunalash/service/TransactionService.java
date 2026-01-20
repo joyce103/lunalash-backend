@@ -1,8 +1,10 @@
 package com.example.lunalash.service;
 
 import com.example.lunalash.dto.TransactionCreateRequest;
+import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.OperationItemEntity;
 import com.example.lunalash.entity.TransactionRecordEntity;
+import com.example.lunalash.repository.EyelashAreaDetailRepository;
 import com.example.lunalash.repository.OperationItemRepository;
 import com.example.lunalash.repository.TransactionRecordRepository;
 import org.springframework.stereotype.Service;
@@ -16,13 +18,17 @@ public class TransactionService {
 
     private final TransactionRecordRepository transactionRepo;
     private final OperationItemRepository operationRepo;
+    private final EyelashAreaDetailRepository eyelashAreaDetailRepo;
+
 
     public TransactionService(
             TransactionRecordRepository transactionRepo,
-            OperationItemRepository operationRepo
+            OperationItemRepository operationRepo,
+            EyelashAreaDetailRepository eyelashAreaDetailRepo
     ) {
         this.transactionRepo = transactionRepo;
         this.operationRepo = operationRepo;
+        this.eyelashAreaDetailRepo = eyelashAreaDetailRepo;
     }
 
     @Transactional
@@ -44,26 +50,57 @@ public class TransactionService {
         transaction = transactionRepo.save(transaction);
 
         // 2️⃣ 建立操作項目
-        List<OperationItemEntity> items = new ArrayList<>();
-        for (var itemReq : request.operationItems) {
-            OperationItemEntity item = new OperationItemEntity();
-            item.setOperationName(itemReq.operationName);
-            item.setTotalLashCount(itemReq.totalLashCount);
-            item.setStyle(itemReq.style);
-            item.setThickness(itemReq.thickness);
-            item.setBrand(itemReq.brand);
-            item.setCategory(itemReq.category);
-            item.setGlueType(itemReq.glueType);
-            item.setRemark(itemReq.remark);
+        for (var opReq : request.operationItems) {
 
-            item.setTransaction(transaction);
+            OperationItemEntity operationItem = new OperationItemEntity();
+            operationItem.setOperationName(opReq.operationName);
+            operationItem.setTotalLashCount(opReq.totalLashCount);
+            operationItem.setStyle(opReq.style);
+            operationItem.setThickness(opReq.thickness);
+            operationItem.setBrand(opReq.brand);
+            operationItem.setCategory(opReq.category);
+            operationItem.setGlueType(opReq.glueType);
+            operationItem.setRemark(opReq.remark);
+            operationItem.setTransaction(transaction);
 
-            items.add(item);
+            operationItem = operationRepo.save(operationItem);
+
+            List<EyelashAreaDetailEntity> areas = new ArrayList<>();
+            for (var areaReq : opReq.eyelashAreaDetail) {
+                EyelashAreaDetailEntity area = new EyelashAreaDetailEntity();
+                area.setPosition(areaReq.position);
+                area.setLashCount(areaReq.lashCount);
+                area.setLashLengths(areaReq.lashLengths);
+                area.setLashCurls(areaReq.lashCurls);
+                area.setOperationItem(operationItem);
+
+                areas.add(area);
+            }
+
+            eyelashAreaDetailRepo.saveAll(areas);
         }
 
-        // 一次存所有操作項目
-        operationRepo.saveAll(items);
-
         return transaction.getTransactionId();
+//        List<OperationItemEntity> items = new ArrayList<>();
+//        for (var itemReq : request.operationItems) {
+//            OperationItemEntity item = new OperationItemEntity();
+//            item.setOperationName(itemReq.operationName);
+//            item.setTotalLashCount(itemReq.totalLashCount);
+//            item.setStyle(itemReq.style);
+//            item.setThickness(itemReq.thickness);
+//            item.setBrand(itemReq.brand);
+//            item.setCategory(itemReq.category);
+//            item.setGlueType(itemReq.glueType);
+//            item.setRemark(itemReq.remark);
+//
+//            item.setTransaction(transaction);
+//
+//            items.add(item);
+//        }
+//
+//        // 一次存所有操作項目
+//        operationRepo.saveAll(items);
+//
+//        return transaction.getTransactionId();
     }
 }
