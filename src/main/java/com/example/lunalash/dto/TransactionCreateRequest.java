@@ -17,4 +17,5 @@ public class TransactionCreateRequest {
     public String remark;
 
     public List<OperationItemRequest> operationItems;
+    public List<TransactionDetailRequest> transactionDetails;
  }

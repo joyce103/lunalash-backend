@@ -45,13 +45,25 @@ public class TransactionRecordEntity {
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;
     
-
+    /**
+     * 操作項目
+     */
     @OneToMany(
         mappedBy = "transaction",
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
     private List<OperationItemEntity> operationItems = new ArrayList<>();
+    
+    /**
+     * 交易明細（實際金額、品項）
+     */
+    @OneToMany(
+        mappedBy = "transaction",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    private List<TransactionDetailEntity> transactionDetails = new ArrayList<>();
 
     // ===== Getter / Setter =====
 

@@ -3,9 +3,11 @@ package com.example.lunalash.service;
 import com.example.lunalash.dto.TransactionCreateRequest;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.OperationItemEntity;
+import com.example.lunalash.entity.TransactionDetailEntity;
 import com.example.lunalash.entity.TransactionRecordEntity;
 import com.example.lunalash.repository.EyelashAreaDetailRepository;
 import com.example.lunalash.repository.OperationItemRepository;
+import com.example.lunalash.repository.TransactionDetailRepository;
 import com.example.lunalash.repository.TransactionRecordRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +21,19 @@ public class TransactionService {
     private final TransactionRecordRepository transactionRepo;
     private final OperationItemRepository operationRepo;
     private final EyelashAreaDetailRepository eyelashAreaDetailRepo;
+    private final TransactionDetailRepository transactionDetailRepo;
 
 
     public TransactionService(
             TransactionRecordRepository transactionRepo,
             OperationItemRepository operationRepo,
-            EyelashAreaDetailRepository eyelashAreaDetailRepo
+            EyelashAreaDetailRepository eyelashAreaDetailRepo,
+            TransactionDetailRepository transactionDetailRepo
     ) {
         this.transactionRepo = transactionRepo;
         this.operationRepo = operationRepo;
         this.eyelashAreaDetailRepo = eyelashAreaDetailRepo;
+        this.transactionDetailRepo = transactionDetailRepo;
     }
 
     @Transactional
@@ -79,28 +84,17 @@ public class TransactionService {
 
             eyelashAreaDetailRepo.saveAll(areas);
         }
+        
+        for (var detailReq : request.transactionDetails) {
+            TransactionDetailEntity detail = new TransactionDetailEntity();
+            detail.setItemName(detailReq.itemName);
+            detail.setItemPrice(detailReq.itemPrice);
+            detail.setQuantity(detailReq.quantity);
+            detail.setTransaction(transaction);
+
+            detail = transactionDetailRepo.save(detail);
+        }
 
         return transaction.getTransactionId();
-//        List<OperationItemEntity> items = new ArrayList<>();
-//        for (var itemReq : request.operationItems) {
-//            OperationItemEntity item = new OperationItemEntity();
-//            item.setOperationName(itemReq.operationName);
-//            item.setTotalLashCount(itemReq.totalLashCount);
-//            item.setStyle(itemReq.style);
-//            item.setThickness(itemReq.thickness);
-//            item.setBrand(itemReq.brand);
-//            item.setCategory(itemReq.category);
-//            item.setGlueType(itemReq.glueType);
-//            item.setRemark(itemReq.remark);
-//
-//            item.setTransaction(transaction);
-//
-//            items.add(item);
-//        }
-//
-//        // 一次存所有操作項目
-//        operationRepo.saveAll(items);
-//
-//        return transaction.getTransactionId();
     }
 }
