@@ -87,9 +87,9 @@ public class TransactionService {
         
         for (var detailReq : request.transactionDetails) {
             TransactionDetailEntity detail = new TransactionDetailEntity();
-            detail.setItemName(detailReq.itemName);
-            detail.setItemPrice(detailReq.itemPrice);
-            detail.setQuantity(detailReq.quantity);
+            detail.setItemName(detailReq.getItemName());
+            detail.setItemPrice(detailReq.getItemPrice());
+            detail.setQuantity(detailReq.getQuantity());
             detail.setTransaction(transaction);
 
             detail = transactionDetailRepo.save(detail);

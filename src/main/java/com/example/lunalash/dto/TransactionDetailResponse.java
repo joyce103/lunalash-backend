@@ -2,6 +2,7 @@ package com.example.lunalash.dto;
 
 import java.math.BigDecimal;
 
+
 public class TransactionDetailResponse {
 
     private Long transactionDetailId;
@@ -22,4 +23,20 @@ public class TransactionDetailResponse {
     }
 
     // getters
+    public Long getTransactionDetailId() {
+        return transactionDetailId;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public BigDecimal getItemPrice() {
+        return itemPrice;
+    }
+
+    public Short getQuantity() {
+        return quantity;
+    }
+
 }
