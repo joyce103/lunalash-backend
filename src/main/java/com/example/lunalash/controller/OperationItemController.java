@@ -5,6 +5,10 @@ import com.example.lunalash.entity.OperationItemEntity;
 import com.example.lunalash.repository.OperationItemRepository;
 import com.example.lunalash.service.OperationItemService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/operationItems")
+@Tag(name = "操作項目")
 public class OperationItemController {
 
     private final OperationItemRepository operationItemRepository;
@@ -22,7 +27,7 @@ public class OperationItemController {
         this.operationItemService = operationItemService;
     }
 
-    // 新增操作項目    
+    @Operation(summary = "新增操作項目")
     @PostMapping
     public ResponseEntity<Long> create(
             @RequestBody OperationItemRequest request
@@ -31,9 +36,10 @@ public class OperationItemController {
         return ResponseEntity.ok(operationItemId);
     }
 
-    // 依交易單號取得操作項目
+    @Operation(summary = "查詢操作項目")
     @GetMapping("/transaction/{transactionId}")
     public List<OperationItemEntity> getByTransactionId(
+    		@Parameter(description="交易單號")
             @PathVariable Long transactionId
     ) {
         return operationItemRepository.findByTransaction_TransactionId(transactionId);

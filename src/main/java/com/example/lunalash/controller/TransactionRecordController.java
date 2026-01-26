@@ -5,6 +5,10 @@ import com.example.lunalash.entity.TransactionRecordEntity;
 import com.example.lunalash.repository.TransactionRecordRepository;
 import com.example.lunalash.service.TransactionService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/transactions")
+@Tag(name = "交易內容")
 public class TransactionRecordController {
 
     private final TransactionRecordRepository repository;
@@ -25,7 +30,7 @@ public class TransactionRecordController {
         this.transactionService = transactionService;
     }
 
-    // ✅ 新增交易（含多筆操作項目）
+    @Operation(summary = "新增交易（含多筆操作項目及交易明細）")
     @PostMapping
     public ResponseEntity<Long> create(
             @RequestBody TransactionCreateRequest request
@@ -34,26 +39,29 @@ public class TransactionRecordController {
         return ResponseEntity.ok(transactionId);
     }
 
-    // 查詢會員的交易紀錄
+    @Operation(summary = "查詢會員交易紀錄")
     @GetMapping("/member/{memberId}")
     public List<TransactionRecordEntity> getByMember(
+    		@Parameter(description="會員ID")
             @PathVariable Long memberId
     ) {
         return repository.findByMemberId(memberId);
     }
 
-    // 查詢單筆交易
+    @Operation(summary = "查詢單筆交易")
     @GetMapping("/{transactionId}")
     public TransactionRecordEntity getOne(
+    		@Parameter(description="交易單號")
             @PathVariable Long transactionId
     ) {
         return repository.findById(transactionId)
                 .orElseThrow(() -> new RuntimeException("交易不存在"));
     }
 
-    // 刪除交易
+    @Operation(summary = "刪除單筆交易")
     @DeleteMapping("/{transactionId}")
     public ResponseEntity<Void> delete(
+    		@Parameter(description="交易單號")
             @PathVariable Long transactionId
     ) {
         if (!repository.existsById(transactionId)) {
