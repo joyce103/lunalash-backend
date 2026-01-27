@@ -1,11 +1,11 @@
 package com.example.lunalash.service;
 
 import com.example.lunalash.entity.MemberEntity;
+import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MemberService {
@@ -20,9 +20,10 @@ public class MemberService {
         return memberRepository.findAll();
     }
 
-    public MemberEntity getMemberById(Long id) {
-        Optional<MemberEntity> member = memberRepository.findById(id);
-        return member.orElse(null); // 或者丟出自定義例外
+    public MemberEntity getMemberByPhone(String phone) {
+        // 使用 Optional 的 orElseThrow，如果找不到就拋出例外
+        return memberRepository.findByPhone(phone)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到手機號碼為 " + phone + " 的會員"));
     }
 
     public MemberEntity createMember(MemberEntity member) {

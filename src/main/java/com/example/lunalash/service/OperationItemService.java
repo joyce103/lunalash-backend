@@ -1,13 +1,18 @@
 package com.example.lunalash.service;
 
+import com.example.lunalash.dto.EyelashAreaDetailResponse;
 import com.example.lunalash.dto.OperationItemRequest;
+import com.example.lunalash.dto.OperationItemResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.OperationItemEntity;
+import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.EyelashAreaDetailRepository;
 import com.example.lunalash.repository.OperationItemRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
@@ -60,5 +65,44 @@ public class OperationItemService {
         eyelashAreaDetailRepo.saveAll(areaItems);
 
         return operationItem.getOperationItemId();
+    }
+
+    public List<OperationItemResponse> getOperationItemsByTransactionId(Long transactionId) {
+        List<OperationItemEntity> entities = operationItemRepo.findByTransaction_TransactionId(transactionId);
+        
+        if (entities.isEmpty()) {
+            throw new ResourceNotFoundException("找不到交易單號為 " + transactionId + " 的操作項目");
+        }
+
+        // 將 Entity 轉換為 Response DTO
+        return entities.stream().map(this::convertToResponse).collect(Collectors.toList());
+    }
+
+    private OperationItemResponse convertToResponse(OperationItemEntity entity) {
+        OperationItemResponse resp = new OperationItemResponse();
+        resp.setOperationItemId(entity.getOperationItemId());
+        resp.setOperationName(entity.getOperationName());
+        resp.setTotalLashCount(entity.getTotalLashCount());
+        resp.setStyle(entity.getStyle());
+        resp.setThickness(entity.getThickness());
+        resp.setBrand(entity.getBrand());
+        resp.setCategory(entity.getCategory());
+        resp.setGlueType(entity.getGlueType());
+        resp.setRemark(entity.getRemark());
+
+        // 轉換內層區域資料 (對應到 OperationItemEntity 中 getAreaDetails() 方法)
+        if (entity.getAreaDetails() != null) {
+            List<EyelashAreaDetailResponse> details = entity.getAreaDetails().stream().map(detailEntity -> {
+                EyelashAreaDetailResponse detailResp = new EyelashAreaDetailResponse();
+                detailResp.setPosition(detailEntity.getPosition());
+                detailResp.setLashCount(detailEntity.getLashCount());
+                detailResp.setLashLengths(detailEntity.getLashLengths());
+                detailResp.setLashCurls(detailEntity.getLashCurls());
+                return detailResp;
+            }).collect(Collectors.toList());
+            resp.setEyelashAreaDetails(details);
+        }
+        
+        return resp;
     }
 }

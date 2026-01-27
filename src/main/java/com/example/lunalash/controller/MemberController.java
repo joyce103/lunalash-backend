@@ -1,10 +1,10 @@
 package com.example.lunalash.controller;
 
+import com.example.lunalash.dto.MemberQueryRequest;
 import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.service.MemberService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +30,11 @@ public class MemberController {
         return memberService.getAllMembers();
     }
 
-    @Operation(summary = "查詢單一會員資料")
-    @GetMapping("/getMember/{id}")
-    public MemberEntity getMemberById(@Parameter(description="會員編號")@PathVariable Long id) {
-        return memberService.getMemberById(id);
+    
+    @Operation(summary = "手機號碼查詢會員")
+    @PostMapping("/getMemberByPhone")
+    public MemberEntity getMemberByPhone(@RequestBody MemberQueryRequest request) {
+        return memberService.getMemberByPhone(request.getPhone());
     }
 
     @Operation(summary = "新增會員資料")
