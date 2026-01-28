@@ -58,25 +58,25 @@ public class TransactionService {
         for (var opReq : request.operationItems) {
 
             OperationItemEntity operationItem = new OperationItemEntity();
-            operationItem.setOperationName(opReq.operationName);
-            operationItem.setTotalLashCount(opReq.totalLashCount);
-            operationItem.setStyle(opReq.style);
-            operationItem.setThickness(opReq.thickness);
-            operationItem.setBrand(opReq.brand);
-            operationItem.setCategory(opReq.category);
-            operationItem.setGlueType(opReq.glueType);
-            operationItem.setRemark(opReq.remark);
+            operationItem.setOperationName(opReq.getOperationName());
+            operationItem.setTotalLashCount(opReq.getTotalLashCount());
+            operationItem.setStyle(opReq.getStyle());
+            operationItem.setThickness(opReq.getThickness());
+            operationItem.setBrand(opReq.getBrand());
+            operationItem.setCategory(opReq.getCategory());
+            operationItem.setGlueType(opReq.getGlueType());
+            operationItem.setRemark(opReq.getRemark());
             operationItem.setTransaction(transaction);
 
             operationItem = operationRepo.save(operationItem);
 
             List<EyelashAreaDetailEntity> areas = new ArrayList<>();
-            for (var areaReq : opReq.eyelashAreaDetail) {
+            for (var areaReq : opReq.getEyelashAreaDetail()) {
                 EyelashAreaDetailEntity area = new EyelashAreaDetailEntity();
-                area.setPosition(areaReq.position);
-                area.setLashCount(areaReq.lashCount);
-                area.setLashLengths(areaReq.lashLengths);
-                area.setLashCurls(areaReq.lashCurls);
+                area.setPosition(areaReq.getPosition());
+                area.setLashCount(areaReq.getLashCount());
+                area.setLashLengths(areaReq.getLashLengths());
+                area.setLashCurls(areaReq.getLashCurls());
                 area.setOperationItem(operationItem);
 
                 areas.add(area);

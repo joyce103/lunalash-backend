@@ -25,8 +25,8 @@ public class EyelashAreaDetailController {
     @Operation(summary = "刪除睫毛區域資料(單筆)")
     @PostMapping("/area")    
     public ResponseEntity<Void> delete(@RequestBody EyelashAreaDetailRequest request) {
-    	Long eyelashAreaDetailId = request.eyelashAreaDetailId;
-        Long operationItemId = request.operationItemId;
+    	Long eyelashAreaDetailId = request.getEyelashAreaDetailId();
+        Long operationItemId = request.getOperationItemId();
         try {
             eyelashAreaDetailService.deleteOneArea(eyelashAreaDetailId, operationItemId);
             return ResponseEntity.noContent().build(); // 204

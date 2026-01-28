@@ -5,9 +5,11 @@ import com.example.lunalash.dto.OperationItemRequest;
 import com.example.lunalash.dto.OperationItemResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.OperationItemEntity;
+import com.example.lunalash.entity.TransactionRecordEntity;
 import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.EyelashAreaDetailRepository;
 import com.example.lunalash.repository.OperationItemRepository;
+import com.example.lunalash.repository.TransactionRecordRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,47 +23,53 @@ public class OperationItemService {
 
     private final OperationItemRepository operationItemRepo;
     private final EyelashAreaDetailRepository eyelashAreaDetailRepo;
+    private final TransactionRecordRepository transactionRecordRepo;
 
     public OperationItemService(
     		OperationItemRepository operationItemRepo,
-    		EyelashAreaDetailRepository eyelashAreaDetailRepo
+    		EyelashAreaDetailRepository eyelashAreaDetailRepo,
+    		TransactionRecordRepository transactionRecordRepo
     ) {
         this.operationItemRepo = operationItemRepo;
         this.eyelashAreaDetailRepo = eyelashAreaDetailRepo;
+        this.transactionRecordRepo = transactionRecordRepo;
     }
 
     @Transactional
     public Long createOperationItem(OperationItemRequest request) {
+    	// 尋找對應的交易，找不到就噴 404
+        TransactionRecordEntity transaction = transactionRecordRepo.findById(request.getTransactionId())
+                .orElseThrow(() -> new ResourceNotFoundException("找不到交易單號：" + request.getTransactionId()));
 
-        // 1️⃣ 建立交易
+        // ️建立操作項目
         OperationItemEntity operationItem = new OperationItemEntity();
-        operationItem.setOperationName(request.operationName);
-        operationItem.setTotalLashCount(request.totalLashCount);
-        operationItem.setStyle(request.style);
-        operationItem.setThickness(request.thickness);
-        operationItem.setBrand(request.brand);
-        operationItem.setCategory(request.category);
-        operationItem.setGlueType(request.glueType);
-        operationItem.setRemark(request.remark);
-
+        operationItem.setTransaction(transaction); // 建立關聯
+        operationItem.setOperationName(request.getOperationName());
+        operationItem.setTotalLashCount(request.getTotalLashCount());
+        operationItem.setStyle(request.getStyle());
+        operationItem.setThickness(request.getThickness());
+        operationItem.setBrand(request.getBrand());
+        operationItem.setCategory(request.getCategory());
+        operationItem.setGlueType(request.getGlueType());
+        operationItem.setRemark(request.getRemark());
 
         // 先操作項目，讓 operationItemId 自動生成
         operationItem = operationItemRepo.save(operationItem);
 
-        // 2️⃣ 建立操作項目
+        // 建立區域項目
         List<EyelashAreaDetailEntity> areaItems = new ArrayList<>();
-        for (var itemReq : request.eyelashAreaDetail) {
+        for (var itemReq : request.getEyelashAreaDetail()) {
         	EyelashAreaDetailEntity item = new EyelashAreaDetailEntity();
-            item.setPosition(itemReq.position);
-            item.setLashCount(itemReq.lashCount);
-            item.setLashLengths(itemReq.lashLengths);
-            item.setLashCurls(itemReq.lashCurls);
+            item.setPosition(itemReq.getPosition());
+            item.setLashCount(itemReq.getLashCount());
+            item.setLashLengths(itemReq.getLashLengths());
+            item.setLashCurls(itemReq.getLashCurls());
 
             item.setOperationItem(operationItem);
             areaItems.add(item);
         }
 
-        // 一次存所有操作項目
+        // 一次存所有區域項目
         eyelashAreaDetailRepo.saveAll(areaItems);
 
         return operationItem.getOperationItemId();
