@@ -110,7 +110,6 @@ public class OperationItemService {
             }).collect(Collectors.toList());
             resp.setEyelashAreaDetails(details);
         }
-        
         return resp;
     }
 }
