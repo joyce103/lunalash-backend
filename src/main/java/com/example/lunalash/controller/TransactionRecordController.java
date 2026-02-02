@@ -41,33 +41,29 @@ public class TransactionRecordController {
 
     @Operation(summary = "查詢會員交易紀錄")
     @GetMapping("/member/{memberId}")
-    public List<TransactionRecordEntity> getByMember(
-    		@Parameter(description="會員ID")
+    public List<TransactionRecordEntity> getTransactionByMember(
+            @Parameter(description="會員ID")
             @PathVariable Long memberId
     ) {
-        return repository.findByMemberId(memberId);
+        return transactionService.getTransactionsByMemberId(memberId);
     }
 
     @Operation(summary = "查詢單筆交易")
     @GetMapping("/{transactionId}")
-    public TransactionRecordEntity getOne(
+    public List<TransactionRecordEntity> getTransaction(
     		@Parameter(description="交易單號")
             @PathVariable Long transactionId
     ) {
-        return repository.findById(transactionId)
-                .orElseThrow(() -> new RuntimeException("交易不存在"));
+        return transactionService.getTransactionByTransactionId(transactionId);
+
     }
 
     @Operation(summary = "刪除單筆交易")
     @DeleteMapping("/{transactionId}")
-    public ResponseEntity<Void> delete(
-    		@Parameter(description="交易單號")
+    public void delete(
+            @Parameter(description="交易單號")
             @PathVariable Long transactionId
     ) {
-        if (!repository.existsById(transactionId)) {
-            return ResponseEntity.notFound().build();
-        }
-        repository.deleteById(transactionId);
-        return ResponseEntity.noContent().build(); // 204
+        transactionService.deleteTransaction(transactionId);
     }
 }

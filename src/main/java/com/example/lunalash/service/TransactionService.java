@@ -2,9 +2,11 @@ package com.example.lunalash.service;
 
 import com.example.lunalash.dto.TransactionCreateRequest;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
+import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.entity.OperationItemEntity;
 import com.example.lunalash.entity.TransactionDetailEntity;
 import com.example.lunalash.entity.TransactionRecordEntity;
+import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.EyelashAreaDetailRepository;
 import com.example.lunalash.repository.OperationItemRepository;
 import com.example.lunalash.repository.TransactionDetailRepository;
@@ -96,5 +98,30 @@ public class TransactionService {
         }
 
         return transaction.getTransactionId();
+    }
+    
+    public List<TransactionRecordEntity> getTransactionsByMemberId(Long memberId) {
+    	List<TransactionRecordEntity> transactions = transactionRepo.findByMemberId(memberId);
+        if (transactions.isEmpty()) {
+            throw new ResourceNotFoundException("查無此會員");
+        }
+        return transactions;
+    }
+    
+    public List<TransactionRecordEntity> getTransactionByTransactionId(Long transactionId) {
+    	List<TransactionRecordEntity> transactions = transactionRepo.findByTransactionId(transactionId);
+        if (transactions.isEmpty()) {
+            throw new ResourceNotFoundException("查無此交易");
+        }
+        return transactions;
+    }
+    
+    @Transactional
+    public void deleteTransaction(Long transactionId) {
+        if (!transactionRepo.existsById(transactionId)) {
+            throw new ResourceNotFoundException("刪除失敗，找不到交易單號為 " + transactionId + " 的紀錄");
+        }
+        
+        transactionRepo.deleteById(transactionId);
     }
 }

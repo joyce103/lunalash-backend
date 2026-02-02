@@ -9,4 +9,5 @@ public interface TransactionRecordRepository
         extends JpaRepository<TransactionRecordEntity, Long> {
 
     List<TransactionRecordEntity> findByMemberId(Long memberId);
+    List<TransactionRecordEntity> findByTransactionId(Long transactionId);
 }
