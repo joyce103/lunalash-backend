@@ -9,8 +9,14 @@ public class EyelashAreaDetailRequest {
     private List<Integer> lashLengths;
     private List<String> lashCurls;
     private Long operationItemId;
+    
+    private List<EyelashAreaDetailRequest> areas; 
 
     // --- Getter & Setter ---
+ 
+    public List<EyelashAreaDetailRequest> getAreas() { return areas; }
+    public void setAreas(List<EyelashAreaDetailRequest> areas) { this.areas = areas; }
+
 
     public Long getEyelashAreaDetailId() {
         return eyelashAreaDetailId;

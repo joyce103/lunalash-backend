@@ -1,16 +1,18 @@
 package com.example.lunalash.service;
 
+import com.example.lunalash.dto.EyelashAreaDetailRequest;
+import com.example.lunalash.dto.EyelashAreaDetailResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.OperationItemEntity;
+import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.EyelashAreaDetailRepository;
 import com.example.lunalash.repository.OperationItemRepository;
-
-import jakarta.persistence.EntityNotFoundException;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EyelashAreaDetailService {
@@ -25,36 +27,50 @@ public class EyelashAreaDetailService {
     }
 
     @Transactional
-    public List<EyelashAreaDetailEntity> createAreas(Long operationItemId, List<EyelashAreaDetailEntity> areas) {
-        OperationItemEntity op = operationRepo.findById(operationItemId)
-                .orElseThrow(() -> new RuntimeException("操作項目不存在"));
+    public List<EyelashAreaDetailResponse> createAreas(EyelashAreaDetailRequest batchRequest) {
+        OperationItemEntity op = operationRepo.findById(batchRequest.getOperationItemId())
+                .orElseThrow(() -> new ResourceNotFoundException("找不到操作項目: " + batchRequest.getOperationItemId()));
 
-        for (EyelashAreaDetailEntity area : areas) {
-            area.setOperationItem(op);
-        }
+        List<EyelashAreaDetailEntity> entities = batchRequest.getAreas().stream().map(req -> {
+            EyelashAreaDetailEntity entity = new EyelashAreaDetailEntity();
+            entity.setPosition(req.getPosition());
+            entity.setLashCount(req.getLashCount());
+            entity.setLashLengths(req.getLashLengths());
+            entity.setLashCurls(req.getLashCurls());
+            entity.setOperationItem(op);
+            return entity;
+        }).toList();
 
-        return areaRepo.saveAll(areas);
-    }
+        List<EyelashAreaDetailEntity> savedEntities = areaRepo.saveAll(entities);
 
-    public List<EyelashAreaDetailEntity> getByOperationItemId(Long operationItemId) {
-        return areaRepo.findByOperationItemId(operationItemId);
+        return savedEntities.stream().map(this::toResponse).toList();
     }
     
+    private EyelashAreaDetailResponse toResponse(EyelashAreaDetailEntity entity) {
+        EyelashAreaDetailResponse resp = new EyelashAreaDetailResponse();
+        resp.setEyelashAreaDetailId(entity.getEyelashAreaDetailId());
+        resp.setPosition(entity.getPosition());
+        resp.setLashCount(entity.getLashCount());
+        resp.setLashLengths(entity.getLashLengths());
+        resp.setLashCurls(entity.getLashCurls());
+        return resp;
+    }
+
     @Transactional
     public void deleteOneArea(Long eyelashAreaDetailId, Long operationItemId) {
         int deleted = areaRepo.deleteByEyelashAreaDetailIdAndOperationItem_OperationItemId(
-        		eyelashAreaDetailId, operationItemId
-               );
+                eyelashAreaDetailId, operationItemId
+        );
         if (deleted == 0) {
-            throw new EntityNotFoundException(
-                    "Area not found or not belong to this operationItem"
-            );
+            throw new ResourceNotFoundException("找不到指定的區域資料或該資料不屬於此操作項目");
         }
     }
 
-
     @Transactional
     public void deleteAreasByOperationItemId(Long operationItemId) {
-    	areaRepo.deleteByOperationItem_OperationItemId(operationItemId);
+        if (!areaRepo.existsByOperationItem_OperationItemId(operationItemId)) {
+            throw new ResourceNotFoundException("該操作項目 ID: " + operationItemId + " 下無區域資料可刪除");
+        }
+        areaRepo.deleteByOperationItem_OperationItemId(operationItemId);
     }
 }

@@ -2,6 +2,8 @@ package com.example.lunalash.entity;
 
 import com.example.lunalash.converter.IntegerListJsonConverter;
 import com.example.lunalash.converter.StringListJsonConverter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -17,6 +19,7 @@ public class EyelashAreaDetailEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "operation_item_id", nullable = false)
+    @JsonIgnore
     private OperationItemEntity operationItem;
 
     @Column(name = "position")
