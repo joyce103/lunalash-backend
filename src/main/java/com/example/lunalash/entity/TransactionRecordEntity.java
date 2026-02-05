@@ -150,4 +150,20 @@ public class TransactionRecordEntity {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+    
+    public List<OperationItemEntity> getOperationItems() {
+    	return operationItems;
+    }
+    
+    public void setOperationItems(List<OperationItemEntity> operationItems) {
+    	this.operationItems = operationItems;
+    }
+    
+    public List<TransactionDetailEntity> getTransactionDetails() {
+    	return transactionDetails;
+    }
+    
+    public void setTransactionDetails(List<TransactionDetailEntity> transactionDetails) {
+    	this.transactionDetails = transactionDetails;
+    }
 }

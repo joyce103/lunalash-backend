@@ -1,6 +1,10 @@
 package com.example.lunalash.service;
 
+import com.example.lunalash.dto.OperationItemResponse;
+import com.example.lunalash.dto.EyelashAreaDetailResponse;
+import com.example.lunalash.dto.TransactionDetailResponse;
 import com.example.lunalash.dto.TransactionCreateRequest;
+import com.example.lunalash.dto.TransactionResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.entity.OperationItemEntity;
@@ -108,12 +112,57 @@ public class TransactionService {
         return transactions;
     }
     
-    public List<TransactionRecordEntity> getTransactionByTransactionId(Long transactionId) {
-    	List<TransactionRecordEntity> transactions = transactionRepo.findByTransactionId(transactionId);
-        if (transactions.isEmpty()) {
-            throw new ResourceNotFoundException("查無此交易");
-        }
-        return transactions;
+    @Transactional(readOnly = true)
+    public TransactionResponse getFullTransaction(Long transactionId) {
+        // 1. 取得單一主檔
+        TransactionRecordEntity transaction = transactionRepo.findById(transactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("查無此交易單號: " + transactionId));
+
+        // 2. 轉換主檔基本資料
+        TransactionResponse response = new TransactionResponse();
+        response.setTransactionId(transaction.getTransactionId());
+        response.setMemberId(transaction.getMemberId());
+        response.setTransactionTime(transaction.getTransactionTime());
+        response.setLashArtist(transaction.getLashArtist());
+        response.setAmountBeforeDiscount(transaction.getAmountBeforeDiscount());
+        response.setAmountAfterDiscount(transaction.getAmountAfterDiscount());
+        response.setDiscountType(transaction.getDiscountType());
+        response.setDiscountRate(transaction.getDiscountRate());
+        response.setPaymentMethod(transaction.getPaymentMethod());
+        response.setRemark(transaction.getRemark());
+
+        // 3. 轉換操作項目 (第一層 List)
+        // 確保 response.setOperationItems 接收的是 List<OperationItemResponse>
+        response.setOperationItems(transaction.getOperationItems().stream().map(op -> {
+            OperationItemResponse opDto = new OperationItemResponse();
+            opDto.setOperationItemId(op.getOperationItemId());
+            // opDto.setOperationName(op.getOperationName()); // 假設有此欄位
+            
+            // 4. 轉換睫毛區域明細 (第二層 List)
+            opDto.setEyelashAreaDetails(op.getAreaDetails().stream().map(area -> {
+                EyelashAreaDetailResponse areaDto = new EyelashAreaDetailResponse();
+                areaDto.setEyelashAreaDetailId(area.getEyelashAreaDetailId());
+                areaDto.setPosition(area.getPosition());
+                areaDto.setLashCount(area.getLashCount());
+                areaDto.setLashLengths(area.getLashLengths());
+                areaDto.setLashCurls(area.getLashCurls());
+                return areaDto;
+            }).toList());
+            
+            return opDto;
+        }).toList());
+
+        // 5. 轉換交易明細 (另一條 List 關聯)
+        response.setTransactionDetails(transaction.getTransactionDetails().stream().map(detail -> {
+        	return new TransactionDetailResponse(
+        	        detail.getTransactionDetailId(),
+        	        detail.getItemName(),
+        	        detail.getItemPrice(),
+        	        detail.getQuantity()
+        	    );
+        }).toList());
+
+        return response;
     }
     
     @Transactional

@@ -1,6 +1,7 @@
 package com.example.lunalash.controller;
 
 import com.example.lunalash.dto.TransactionCreateRequest;
+import com.example.lunalash.dto.TransactionResponse;
 import com.example.lunalash.entity.TransactionRecordEntity;
 import com.example.lunalash.repository.TransactionRecordRepository;
 import com.example.lunalash.service.TransactionService;
@@ -50,11 +51,11 @@ public class TransactionRecordController {
 
     @Operation(summary = "查詢單筆交易")
     @GetMapping("/{transactionId}")
-    public List<TransactionRecordEntity> getTransaction(
+    public TransactionResponse getTransaction(
     		@Parameter(description="交易單號")
             @PathVariable Long transactionId
     ) {
-        return transactionService.getTransactionByTransactionId(transactionId);
+        return transactionService.getFullTransaction(transactionId);
 
     }
 

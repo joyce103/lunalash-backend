@@ -9,6 +9,9 @@ public class TransactionDetailResponse {
     private String itemName;
     private BigDecimal itemPrice;
     private Short quantity;
+    
+    // 無參數建構子
+    public TransactionDetailResponse() {}
 
     public TransactionDetailResponse(
             Long transactionDetailId,
@@ -22,19 +25,15 @@ public class TransactionDetailResponse {
         this.quantity = quantity;
     }
 
-    // getters
     public Long getTransactionDetailId() {
         return transactionDetailId;
     }
-
     public String getItemName() {
         return itemName;
     }
-
     public BigDecimal getItemPrice() {
         return itemPrice;
     }
-
     public Short getQuantity() {
         return quantity;
     }
