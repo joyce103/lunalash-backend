@@ -136,7 +136,14 @@ public class TransactionService {
         response.setOperationItems(transaction.getOperationItems().stream().map(op -> {
             OperationItemResponse opDto = new OperationItemResponse();
             opDto.setOperationItemId(op.getOperationItemId());
-            // opDto.setOperationName(op.getOperationName()); // 假設有此欄位
+            opDto.setOperationName(op.getOperationName());
+            opDto.setTotalLashCount(op.getTotalLashCount());
+            opDto.setStyle(op.getStyle());
+            opDto.setThickness(op.getThickness());
+            opDto.setBrand(op.getBrand());
+            opDto.setCategory(op.getCategory());
+            opDto.setGlueType(op.getGlueType());
+            opDto.setRemark(op.getRemark());
             
             // 4. 轉換睫毛區域明細 (第二層 List)
             opDto.setEyelashAreaDetails(op.getAreaDetails().stream().map(area -> {
