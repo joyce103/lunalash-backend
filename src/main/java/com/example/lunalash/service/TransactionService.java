@@ -47,21 +47,21 @@ public class TransactionService {
 
         // 1️⃣ 建立交易
         TransactionRecordEntity transaction = new TransactionRecordEntity();
-        transaction.setMemberId(request.memberId);
-        transaction.setTransactionTime(request.transactionTime);
-        transaction.setLashArtist(request.lashArtist);
-        transaction.setAmountBeforeDiscount(request.amountBeforeDiscount);
-        transaction.setAmountAfterDiscount(request.amountAfterDiscount);
-        transaction.setDiscountType(request.discountType);
-        transaction.setDiscountRate(request.discountRate);
-        transaction.setPaymentMethod(request.paymentMethod);
-        transaction.setRemark(request.remark);
+        transaction.setMemberId(request.getMemberId());
+        transaction.setTransactionTime(request.getTransactionTime());
+        transaction.setLashArtist(request.getLashArtist());
+        transaction.setAmountBeforeDiscount(request.getAmountBeforeDiscount());
+        transaction.setAmountAfterDiscount(request.getAmountAfterDiscount());
+        transaction.setDiscountType(request.getDiscountType());
+        transaction.setDiscountRate(request.getDiscountRate());
+        transaction.setPaymentMethod(request.getPaymentMethod());
+        transaction.setRemark(request.getRemark());
 
         // 先存交易，讓 transactionId 自動生成
         transaction = transactionRepo.save(transaction);
 
         // 2️⃣ 建立操作項目
-        for (var opReq : request.operationItems) {
+        for (var opReq : request.getOperationItems()) {
 
             OperationItemEntity operationItem = new OperationItemEntity();
             operationItem.setOperationName(opReq.getOperationName());
@@ -91,7 +91,7 @@ public class TransactionService {
             eyelashAreaDetailRepo.saveAll(areas);
         }
         
-        for (var detailReq : request.transactionDetails) {
+        for (var detailReq : request.getTransactionDetails()) {
             TransactionDetailEntity detail = new TransactionDetailEntity();
             detail.setItemName(detailReq.getItemName());
             detail.setItemPrice(detailReq.getItemPrice());
