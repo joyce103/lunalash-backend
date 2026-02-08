@@ -2,8 +2,7 @@ package com.example.lunalash.controller;
 
 import com.example.lunalash.dto.TransactionCreateRequest;
 import com.example.lunalash.dto.TransactionResponse;
-import com.example.lunalash.entity.TransactionRecordEntity;
-import com.example.lunalash.repository.TransactionRecordRepository;
+import com.example.lunalash.dto.TransactionSummaryResponse;
 import com.example.lunalash.service.TransactionService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,14 +19,11 @@ import java.util.List;
 @Tag(name = "交易內容")
 public class TransactionRecordController {
 
-    private final TransactionRecordRepository repository;
     private final TransactionService transactionService;
 
     public TransactionRecordController(
-            TransactionRecordRepository repository,
             TransactionService transactionService
     ) {
-        this.repository = repository;
         this.transactionService = transactionService;
     }
 
@@ -42,7 +38,7 @@ public class TransactionRecordController {
 
     @Operation(summary = "查詢會員交易紀錄")
     @GetMapping("/member/{memberId}")
-    public List<TransactionRecordEntity> getTransactionByMember(
+    public List<TransactionSummaryResponse> getTransactionByMember(
             @Parameter(description="會員ID")
             @PathVariable Long memberId
     ) {

@@ -5,8 +5,8 @@ import com.example.lunalash.dto.EyelashAreaDetailResponse;
 import com.example.lunalash.dto.TransactionDetailResponse;
 import com.example.lunalash.dto.TransactionCreateRequest;
 import com.example.lunalash.dto.TransactionResponse;
+import com.example.lunalash.dto.TransactionSummaryResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
-import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.entity.OperationItemEntity;
 import com.example.lunalash.entity.TransactionDetailEntity;
 import com.example.lunalash.entity.TransactionRecordEntity;
@@ -104,12 +104,23 @@ public class TransactionService {
         return transaction.getTransactionId();
     }
     
-    public List<TransactionRecordEntity> getTransactionsByMemberId(Long memberId) {
+    @Transactional(readOnly = true)
+    public List<TransactionSummaryResponse> getTransactionsByMemberId(Long memberId) {
     	List<TransactionRecordEntity> transactions = transactionRepo.findByMemberId(memberId);
         if (transactions.isEmpty()) {
             throw new ResourceNotFoundException("查無此會員");
         }
-        return transactions;
+        return transactions.stream().map(entity -> {
+            TransactionSummaryResponse summary = new TransactionSummaryResponse();
+            summary.setTransactionId(entity.getTransactionId());
+            summary.setMemberId(entity.getMemberId());
+            summary.setTransactionTime(entity.getTransactionTime());
+            summary.setLashArtist(entity.getLashArtist());
+            summary.setAmountAfterDiscount(entity.getAmountAfterDiscount());
+            summary.setPaymentMethod(entity.getPaymentMethod());
+            summary.setRemark(entity.getRemark());
+            return summary;
+        }).toList();
     }
     
     @Transactional(readOnly = true)
