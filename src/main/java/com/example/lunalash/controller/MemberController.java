@@ -1,6 +1,7 @@
 package com.example.lunalash.controller;
 
 import com.example.lunalash.dto.MemberQueryRequest;
+import com.example.lunalash.dto.MemberUpdateRequest;
 import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.service.MemberService;
 
@@ -41,5 +42,13 @@ public class MemberController {
     @PostMapping("/addMember")
     public MemberEntity createMember(@RequestBody MemberEntity member) {
         return memberService.createMember(member);
+    }
+    
+    @Operation(summary = "修改會員資料")
+    @PutMapping("/updateMember")
+    public MemberEntity update(
+            @RequestBody MemberUpdateRequest request
+    ) {
+    	return memberService.updateMember(request);
     }
 }

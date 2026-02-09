@@ -1,10 +1,12 @@
 package com.example.lunalash.service;
 
+import com.example.lunalash.dto.MemberUpdateRequest;
 import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.MemberRepository;
-import org.springframework.stereotype.Service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import java.util.List;
 
 @Service
@@ -27,6 +29,20 @@ public class MemberService {
     }
 
     public MemberEntity createMember(MemberEntity member) {
+        return memberRepository.save(member);
+    }
+    
+    public MemberEntity updateMember(MemberUpdateRequest request) {
+        MemberEntity member = memberRepository.findById(request.getMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("修改失敗，找不到此會員 ID: " + request.getMemberId()));
+
+        if (StringUtils.hasText(request.getName())) member.setName(request.getName());
+        if (StringUtils.hasText(request.getPhone())) member.setPhone(request.getPhone());
+        if (StringUtils.hasText(request.getGender())) member.setGender(request.getGender());
+        if (request.getBirthday() != null) member.setBirthday(request.getBirthday());
+        if (StringUtils.hasText(request.getMemberLevel())) member.setMemberLevel(request.getMemberLevel());
+        if (StringUtils.hasText(request.getLineId())) member.setLineId(request.getLineId());
+
         return memberRepository.save(member);
     }
 }
