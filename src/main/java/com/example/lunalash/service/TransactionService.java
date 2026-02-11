@@ -12,6 +12,7 @@ import com.example.lunalash.entity.TransactionDetailEntity;
 import com.example.lunalash.entity.TransactionRecordEntity;
 import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.repository.EyelashAreaDetailRepository;
+import com.example.lunalash.repository.MemberRepository;
 import com.example.lunalash.repository.OperationItemRepository;
 import com.example.lunalash.repository.TransactionDetailRepository;
 import com.example.lunalash.repository.TransactionRecordRepository;
@@ -29,18 +30,20 @@ public class TransactionService {
     private final OperationItemRepository operationRepo;
     private final EyelashAreaDetailRepository eyelashAreaDetailRepo;
     private final TransactionDetailRepository transactionDetailRepo;
-
+    private final MemberRepository memberRepo;
 
     public TransactionService(
             TransactionRecordRepository transactionRepo,
             OperationItemRepository operationRepo,
             EyelashAreaDetailRepository eyelashAreaDetailRepo,
-            TransactionDetailRepository transactionDetailRepo
+            TransactionDetailRepository transactionDetailRepo,
+            MemberRepository memberRepo
     ) {
         this.transactionRepo = transactionRepo;
         this.operationRepo = operationRepo;
         this.eyelashAreaDetailRepo = eyelashAreaDetailRepo;
         this.transactionDetailRepo = transactionDetailRepo;
+        this.memberRepo = memberRepo;
     }
 
     @Transactional
@@ -126,9 +129,13 @@ public class TransactionService {
     
     @Transactional(readOnly = true)
     public List<TransactionSummaryResponse> getTransactionsByMemberId(Long memberId) {
+    	// 先確認會員是否存在
+        if (!memberRepo.existsById(memberId)) {
+            throw new ResourceNotFoundException("查無此會員");
+        }
     	List<TransactionRecordEntity> transactions = transactionRepo.findByMemberId(memberId);
         if (transactions.isEmpty()) {
-            throw new ResourceNotFoundException("查無此會員");
+            throw new ResourceNotFoundException("查無相關交易資料");
         }
         return transactions.stream().map(entity -> {
             TransactionSummaryResponse summary = new TransactionSummaryResponse();
