@@ -29,6 +29,22 @@ public class TransactionDetailEntity {
     @Column(name = "quantity", nullable = false)
     private Short quantity;
     
+    // 消費折扣類型
+    @Column(name = "discount_type", nullable = true, length = 30)
+    private String discountType = "NONE"; 
+    
+    // 消費折扣（小數點）
+    @Column(name = "discount_rate", nullable = true, precision = 4, scale = 3)
+    private BigDecimal discountRate = BigDecimal.ONE;
+    
+    // 消費折扣（折錢）
+    @Column(name = "discount_price", nullable = true, precision = 12, scale = 2)
+    private BigDecimal discountPrice = BigDecimal.ZERO;
+    
+    // 折扣後價格
+    @Column(name = "actual_price", precision = 12, scale = 2)
+    private BigDecimal actualPrice;
+    
     // ===== Getter / Setter =====
 
     public Long getTransactionDetailId() {
@@ -69,6 +85,38 @@ public class TransactionDetailEntity {
 
     public void setQuantity(Short quantity) {
         this.quantity = quantity;
+    }
+    
+    public String getDiscountType () {
+    	return discountType;
+    }
+    
+    public void setDiscountType (String discountType) {
+    	this.discountType = discountType;
+    }
+    
+    public BigDecimal getDiscountRate () {
+    	return discountRate;
+    }
+    
+    public void setDiscountRate (BigDecimal discountRate) {
+    	this.discountRate = discountRate;
+    }
+    
+    public BigDecimal getDiscountPrice () {
+    	return discountPrice;
+    }
+    
+    public void setDiscountPrice (BigDecimal discountPrice) {
+    	this.discountPrice = discountPrice;
+    }
+    
+    public BigDecimal getActualPrice() {
+    	return actualPrice;
+    }
+
+    public void setActualPrice(BigDecimal actualPrice) {
+    	this.actualPrice = actualPrice;
     }
 
 }

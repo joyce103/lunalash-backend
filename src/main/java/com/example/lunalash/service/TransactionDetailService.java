@@ -10,6 +10,7 @@ import com.example.lunalash.repository.TransactionRecordRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,11 +43,30 @@ public class TransactionDetailService {
                 .orElseThrow(() -> new ResourceNotFoundException("找不到對應的交易。"));
 
         TransactionDetailEntity detail = new TransactionDetailEntity();
+    	BigDecimal originalPrice = request.getItemPrice();
+        BigDecimal finalPrice = originalPrice; // 預設等於原價
+
+        if ("R".equalsIgnoreCase(request.getDiscountType())) {
+            // 打折邏輯：原價 * 折扣率 (例如 1000 * 0.9 = 900)
+            finalPrice = originalPrice.multiply(request.getDiscountRate());
+            detail.setDiscountType("R");
+        } else if ("A".equalsIgnoreCase(request.getDiscountType())) {
+            // 折價邏輯：原價 - 折扣金額 (例如 1000 - 100 = 900)
+            finalPrice = originalPrice.subtract(request.getDiscountPrice());
+            detail.setDiscountType("A");
+        } else {
+        	// 前端傳非定義值時，統一回Ｎ
+        	detail.setDiscountType("N");
+        }
+        // 	將計算後價格寫回折扣後價格
+        detail.setActualPrice(finalPrice);
         detail.setTransaction(transaction);
         detail.setItemName(request.getItemName());
         detail.setItemPrice(request.getItemPrice());
         detail.setQuantity(request.getQuantity());
-
+        detail.setDiscountRate(request.getDiscountRate());
+        detail.setDiscountPrice(request.getDiscountPrice());
+        
         return toResponse(repository.save(detail));
     }
 
@@ -76,7 +96,11 @@ public class TransactionDetailService {
                 entity.getTransactionDetailId(),
                 entity.getItemName(),
                 entity.getItemPrice(),
-                entity.getQuantity()
+                entity.getQuantity(),
+                entity.getDiscountType(),
+                entity.getDiscountRate(),
+                entity.getDiscountPrice(),
+                entity.getActualPrice()
         );
     }
 }
