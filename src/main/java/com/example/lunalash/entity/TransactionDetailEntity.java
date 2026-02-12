@@ -118,5 +118,25 @@ public class TransactionDetailEntity {
     public void setActualPrice(BigDecimal actualPrice) {
     	this.actualPrice = actualPrice;
     }
+    
+    public void calculatePrices() {
+        if (this.itemPrice == null) {
+            this.actualPrice = BigDecimal.ZERO;
+            return;
+        }
+
+        BigDecimal finalPrice = this.itemPrice;
+
+        // 判斷折扣邏輯 R:打折 A:折錢
+        if ("R".equalsIgnoreCase(this.discountType) && this.discountRate != null) {
+            finalPrice = this.itemPrice.multiply(this.discountRate);
+        } else if ("A".equalsIgnoreCase(this.discountType) && this.discountPrice != null) {
+            finalPrice = this.itemPrice.subtract(this.discountPrice);
+        } else {
+            // 前端傳非定義值或沒傳時，統一標記為 N
+            this.discountType = "N";
+        }
+        this.actualPrice = finalPrice;
+    }
 
 }

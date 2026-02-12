@@ -97,29 +97,17 @@ public class TransactionService {
         
         for (var detailReq : request.getTransactionDetails()) {
             TransactionDetailEntity detail = new TransactionDetailEntity();
-        	BigDecimal originalPrice = detailReq.getItemPrice();
-            BigDecimal finalPrice = originalPrice; // 預設等於原價
-
-            if ("R".equalsIgnoreCase(detailReq.getDiscountType())) {
-                // 打折邏輯：原價 * 折扣率 (例如 1000 * 0.9 = 900)
-                finalPrice = originalPrice.multiply(detailReq.getDiscountRate());
-            	detail.setDiscountType("R");
-            } else if ("A".equalsIgnoreCase(detailReq.getDiscountType())) {
-                // 折價邏輯：原價 - 折扣金額 (例如 1000 - 100 = 900)
-                finalPrice = originalPrice.subtract(detailReq.getDiscountPrice());
-            	detail.setDiscountType("A");
-            } else {
-            	// 前端傳非定義值時，統一回Ｎ
-            	detail.setDiscountType("N");
-            }
-            // 	將計算後價格寫回折扣後價格
-            detail.setActualPrice(finalPrice);
+ 
             detail.setItemName(detailReq.getItemName());
             detail.setItemPrice(detailReq.getItemPrice());
             detail.setQuantity(detailReq.getQuantity());
+            detail.setDiscountType(detailReq.getDiscountType());
             detail.setDiscountPrice(detailReq.getDiscountPrice());
             detail.setDiscountRate(detailReq.getDiscountRate());
             detail.setTransaction(transaction);
+            
+            // 計算折扣後價格
+            detail.calculatePrices();
 
             detail = transactionDetailRepo.save(detail);
         }
