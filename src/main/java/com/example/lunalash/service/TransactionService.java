@@ -104,13 +104,14 @@ public class TransactionService {
             detail.setDiscountType(detailReq.getDiscountType());
             detail.setDiscountPrice(detailReq.getDiscountPrice());
             detail.setDiscountRate(detailReq.getDiscountRate());
-            detail.setTransaction(transaction);
-            
             // 計算折扣後價格
             detail.calculatePrices();
-
+            detail.setTransaction(transaction);
+            transaction.getTransactionDetails().add(detail);
             detail = transactionDetailRepo.save(detail);
         }
+        transaction.syncAmounts(); 
+	    transactionRepo.save(transaction);
 
         return transaction.getTransactionId();
     }

@@ -166,4 +166,17 @@ public class TransactionRecordEntity {
     public void setTransactionDetails(List<TransactionDetailEntity> transactionDetails) {
     	this.transactionDetails = transactionDetails;
     }
+    
+    // 同步交易明細中價格加總
+    public void syncAmounts() {
+        if (this.transactionDetails == null) return;
+        
+        this.amountBeforeDiscount = this.transactionDetails.stream()
+                .map(TransactionDetailEntity::getBeforeDiscountTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.amountAfterDiscount = this.transactionDetails.stream()
+                .map(TransactionDetailEntity::getDiscountTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

@@ -31,7 +31,7 @@ public class TransactionDetailEntity {
     
     // 消費折扣類型
     @Column(name = "discount_type", nullable = true, length = 30)
-    private String discountType = "NONE"; 
+    private String discountType = "N"; 
     
     // 消費折扣（小數點）
     @Column(name = "discount_rate", nullable = true, precision = 4, scale = 3)
@@ -137,6 +137,22 @@ public class TransactionDetailEntity {
             this.discountType = "N";
         }
         this.actualPrice = finalPrice;
+    }
+    
+    public BigDecimal getDiscountTotal() {
+        if (this.actualPrice == null || this.quantity == null) {
+            return BigDecimal.ZERO;
+        }
+        // 小計公式：折後價*數量
+        return this.actualPrice.multiply(new BigDecimal(this.quantity));
+    }
+    
+    public BigDecimal getBeforeDiscountTotal() {
+        if (this.itemPrice == null || this.quantity == null) {
+            return BigDecimal.ZERO;
+        }
+        // 小計公式：原價*數量
+        return this.itemPrice.multiply(new BigDecimal(this.quantity));
     }
 
 }
