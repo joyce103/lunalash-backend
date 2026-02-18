@@ -53,28 +53,50 @@ public class TransactionDetailService {
         detail.setDiscountPrice(request.getDiscountPrice());
         // 計算折扣後價格
         detail.calculatePrices();
-        
+        if (transaction.getTransactionDetails() != null) {
+        	transaction.getTransactionDetails().add(detail);
+        }
+        transaction.syncAmounts(); 
+        transactionRecordRepository.save(transaction);
         return toResponse(repository.save(detail));
     }
 
     // 刪除單筆交易明細
     @Transactional
     public void deleteDetail(Long detailId) {
-        if (!repository.existsById(detailId)) {
-            throw new ResourceNotFoundException("交易明細不存在。");
-        }
+    	// 查詢交易明細
+    	TransactionDetailEntity detail = repository.findById(detailId)
+                .orElseThrow(() -> new ResourceNotFoundException("交易明細不存在。"));
+    	// 查詢交易
+    	TransactionRecordEntity transaction = detail.getTransaction();
+    	// 從交易中移除明細
+    	if (transaction.getTransactionDetails() != null) {
+    		transaction.getTransactionDetails().remove(detail);
+    	}
+        transaction.syncAmounts(); 
+        transactionRecordRepository.save(transaction);
         repository.deleteById(detailId);
     }
 
     // 刪除某筆交易底下的所有明細
     @Transactional
     public void deleteAllByTransaction(Long transactionId) {
-        // 先檢查是否存在，以符合你想要「失敗時回傳 404」的邏輯
+    	TransactionRecordEntity transaction = transactionRecordRepository.findById(transactionId)
+                .orElseThrow(() -> new ResourceNotFoundException("找不到對應的交易。"));
+
+        // 撈出所有明細
         List<TransactionDetailEntity> details = repository.findByTransaction_TransactionId(transactionId);
         if (details.isEmpty()) {
             throw new ResourceNotFoundException("找不到該交易下的任何明細。");
         }
-        repository.deleteByTransaction_TransactionId(transactionId);
+        // 清空主檔中的明細 List
+        if (transaction.getTransactionDetails() != null) {
+            transaction.getTransactionDetails().clear();
+        }
+        // 重新計算總金額 因為 List 已經清空，這裡算完後總金額會變 0
+        transaction.syncAmounts();
+        transactionRecordRepository.save(transaction);
+        repository.deleteAll(details);
     }
 
     // 統一轉換邏輯
