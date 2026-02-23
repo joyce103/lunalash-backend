@@ -98,6 +98,38 @@ public class TransactionDetailService {
         transactionRecordRepository.save(transaction);
         repository.deleteAll(details);
     }
+    
+    // 更新單筆交易明細
+    @Transactional
+    public TransactionDetailResponse updateTransactionDetail(TransactionDetailRequest request) {
+    	if (request.getTransactionDetailId() == null) {
+    		throw new IllegalArgumentException("更新明細時，必須提供 detailId。");
+    	}
+        TransactionDetailEntity detail = repository.findById(request.getTransactionDetailId())
+                .orElseThrow(() -> new ResourceNotFoundException("找不到要更新的交易明細。"));
+
+        TransactionRecordEntity transaction = detail.getTransaction();
+
+        if (!transaction.getTransactionId().equals(request.getTransactionId())) {
+            throw new IllegalArgumentException("明細所屬的交易單號不可更改。");
+        }
+
+        detail.setItemName(request.getItemName());
+        detail.setItemPrice(request.getItemPrice());
+        detail.setQuantity(request.getQuantity());
+        
+        // 折扣欄位如果前端傳 null，就代表清除該明細的折扣
+        detail.setDiscountType(request.getDiscountType());
+        detail.setDiscountRate(request.getDiscountRate());
+        detail.setDiscountPrice(request.getDiscountPrice());
+
+        // 重新計算明細價格與總價
+        detail.calculatePrices();
+        transaction.syncAmounts();
+
+        transactionRecordRepository.save(transaction);
+        return toResponse(repository.save(detail));
+    }
 
     // 統一轉換邏輯
     private TransactionDetailResponse toResponse(TransactionDetailEntity entity) {

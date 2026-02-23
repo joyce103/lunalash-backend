@@ -1,11 +1,14 @@
 package com.example.lunalash.controller;
 
+import com.example.lunalash.dto.ApiResponse;
 import com.example.lunalash.dto.TransactionDetailRequest;
 import com.example.lunalash.dto.TransactionDetailResponse;
 import com.example.lunalash.service.TransactionDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,5 +54,13 @@ public class TransactionDetailController {
             @Parameter(description="交易單號") @PathVariable Long transactionId
     ) {
         service.deleteAllByTransaction(transactionId);
+    }
+    
+    @Operation(summary = "更新單筆交易明細")
+    @PutMapping("/editDetail")
+    public TransactionDetailResponse updateTransactionDetail(
+            @Valid @RequestBody TransactionDetailRequest request
+    ) {
+        return service.updateTransactionDetail(request);
     }
 }
