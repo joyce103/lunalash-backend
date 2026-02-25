@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
         response.setRunTime(duration + "ms");
         response.setResultData(null);
 
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 處理所有未預期的系統錯誤 (500)
@@ -53,5 +54,16 @@ public class GlobalExceptionHandler {
         response.setResultData(null);
 
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNoHandlerFound(NoHandlerFoundException ex) {
+        ApiResponse<Object> response = new ApiResponse<>();
+        response.setResultCode(404);
+        response.setResultMsg("API 路徑不存在：" + ex.getRequestURL());
+        response.setRunTime("0ms"); 
+        response.setResultData(null);
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 }
