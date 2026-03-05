@@ -1,5 +1,6 @@
 package com.example.lunalash.controller;
 
+import com.example.lunalash.dto.BatchCreateAreaRequest;
 import com.example.lunalash.dto.EyelashAreaDetailRequest;
 import com.example.lunalash.dto.EyelashAreaDetailResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
@@ -24,7 +25,7 @@ public class EyelashAreaDetailController {
     
     @Operation(summary = "批次新增睫毛區域資料")
     @PostMapping("/createAreas")
-    public List<EyelashAreaDetailResponse> createAreas(@RequestBody EyelashAreaDetailRequest request) {
+    public List<EyelashAreaDetailResponse> createAreas(@RequestBody BatchCreateAreaRequest request) {
         return eyelashAreaDetailService.createAreas(request);
     }
     

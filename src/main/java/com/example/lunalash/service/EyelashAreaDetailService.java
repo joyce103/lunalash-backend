@@ -1,5 +1,6 @@
 package com.example.lunalash.service;
 
+import com.example.lunalash.dto.BatchCreateAreaRequest;
 import com.example.lunalash.dto.EyelashAreaDetailRequest;
 import com.example.lunalash.dto.EyelashAreaDetailResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
@@ -27,9 +28,15 @@ public class EyelashAreaDetailService {
     }
 
     @Transactional
-    public List<EyelashAreaDetailResponse> createAreas(EyelashAreaDetailRequest batchRequest) {
+    public List<EyelashAreaDetailResponse> createAreas(BatchCreateAreaRequest batchRequest) {
+        
         OperationItemEntity op = operationRepo.findById(batchRequest.getOperationItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("找不到操作項目: " + batchRequest.getOperationItemId()));
+
+        // 避免前端漏傳 areas 導致 NullPointerException
+        if (batchRequest.getAreas() == null || batchRequest.getAreas().isEmpty()) {
+            throw new IllegalArgumentException("傳入的部位資料 (areas) 不能為空！");
+        }
 
         List<EyelashAreaDetailEntity> entities = batchRequest.getAreas().stream().map(req -> {
             EyelashAreaDetailEntity entity = new EyelashAreaDetailEntity();
