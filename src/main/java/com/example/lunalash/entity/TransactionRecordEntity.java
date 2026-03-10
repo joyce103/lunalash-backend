@@ -30,12 +30,6 @@ public class TransactionRecordEntity {
     @Column(name = "amount_after_discount", nullable = false, precision = 12, scale = 2)
     private BigDecimal amountAfterDiscount;
 
-    @Column(name = "discount_type", nullable = false, length = 20)
-    private String discountType;
-
-    @Column(name = "discount_rate", nullable = false, precision = 4, scale = 3)
-    private BigDecimal discountRate;
-
     @Column(name = "payment_method", nullable = false, length = 20)
     private String paymentMethod;
 
@@ -113,22 +107,6 @@ public class TransactionRecordEntity {
 
     public void setAmountAfterDiscount(BigDecimal amountAfterDiscount) {
         this.amountAfterDiscount = amountAfterDiscount;
-    }
-
-    public String getDiscountType() {
-        return discountType;
-    }
-
-    public void setDiscountType(String discountType) {
-        this.discountType = discountType;
-    }
-
-    public BigDecimal getDiscountRate() {
-        return discountRate;
-    }
-
-    public void setDiscountRate(BigDecimal discountRate) {
-        this.discountRate = discountRate;
     }
 
     public String getPaymentMethod() {

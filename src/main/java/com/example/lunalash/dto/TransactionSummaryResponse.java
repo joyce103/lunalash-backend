@@ -10,8 +10,6 @@ public class TransactionSummaryResponse {
     private String lashArtist;
     private BigDecimal amountBeforeDiscount;
     private BigDecimal amountAfterDiscount;
-    private String discountType;
-    private BigDecimal discountRate;
     private String paymentMethod;
     private String remark;
 
@@ -34,12 +32,6 @@ public class TransactionSummaryResponse {
 
     public BigDecimal getAmountAfterDiscount() { return amountAfterDiscount; }
     public void setAmountAfterDiscount(BigDecimal amountAfterDiscount) { this.amountAfterDiscount = amountAfterDiscount; }
-
-    public String getDiscountType() { return discountType; }
-    public void setDiscountType(String discountType) { this.discountType = discountType; }
-
-    public BigDecimal getDiscountRate() { return discountRate; }
-    public void setDiscountRate(BigDecimal discountRate) { this.discountRate = discountRate; }
 
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }

@@ -56,8 +56,6 @@ public class TransactionService {
         transaction.setLashArtist(request.getLashArtist());
         transaction.setAmountBeforeDiscount(request.getAmountBeforeDiscount());
         transaction.setAmountAfterDiscount(request.getAmountAfterDiscount());
-        transaction.setDiscountType(request.getDiscountType());
-        transaction.setDiscountRate(request.getDiscountRate());
         transaction.setPaymentMethod(request.getPaymentMethod());
         transaction.setRemark(request.getRemark());
 
@@ -84,7 +82,6 @@ public class TransactionService {
             for (var areaReq : opReq.getEyelashAreaDetail()) {
                 EyelashAreaDetailEntity area = new EyelashAreaDetailEntity();
                 area.setPosition(areaReq.getPosition());
-                area.setLashCount(areaReq.getLashCount());
                 area.setLashLengths(areaReq.getLashLengths());
                 area.setLashCurls(areaReq.getLashCurls());
                 area.setOperationItem(operationItem);
@@ -153,8 +150,6 @@ public class TransactionService {
         response.setLashArtist(transaction.getLashArtist());
         response.setAmountBeforeDiscount(transaction.getAmountBeforeDiscount());
         response.setAmountAfterDiscount(transaction.getAmountAfterDiscount());
-        response.setDiscountType(transaction.getDiscountType());
-        response.setDiscountRate(transaction.getDiscountRate());
         response.setPaymentMethod(transaction.getPaymentMethod());
         response.setRemark(transaction.getRemark());
 
