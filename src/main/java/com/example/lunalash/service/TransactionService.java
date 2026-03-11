@@ -129,6 +129,7 @@ public class TransactionService {
             summary.setMemberId(entity.getMemberId());
             summary.setTransactionTime(entity.getTransactionTime());
             summary.setLashArtist(entity.getLashArtist());
+            summary.setAmountBeforeDiscount(entity.getAmountBeforeDiscount());
             summary.setAmountAfterDiscount(entity.getAmountAfterDiscount());
             summary.setPaymentMethod(entity.getPaymentMethod());
             summary.setRemark(entity.getRemark());
