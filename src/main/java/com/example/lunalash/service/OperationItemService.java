@@ -45,13 +45,13 @@ public class OperationItemService {
         OperationItemEntity operationItem = new OperationItemEntity();
         operationItem.setTransaction(transaction); // 建立關聯
         operationItem.setOperationName(request.getOperationName());
-        operationItem.setTotalLashCount(request.getTotalLashCount());
         operationItem.setStyle(request.getStyle());
         operationItem.setThickness(request.getThickness());
         operationItem.setBrand(request.getBrand());
         operationItem.setCategory(request.getCategory());
         operationItem.setGlueType(request.getGlueType());
-        operationItem.setRemark(request.getRemark());
+        
+        operationItem.setTotalLashCount(0);
 
         // 先操作項目，讓 operationItemId 自動生成
         operationItem = operationItemRepo.save(operationItem);
@@ -68,7 +68,12 @@ public class OperationItemService {
             item.setOperationItem(operationItem);
             areaItems.add(item);
         }
-
+        // 將區域明細放入操作項目中
+        operationItem.setAreaDetails(areaItems);
+        // 同步計算睫毛區域根數
+        operationItem.syncTotalLashCount();
+        // 將更新過的資料存回操作項目
+        operationItemRepo.save(operationItem);
         // 一次存所有區域項目
         eyelashAreaDetailRepo.saveAll(areaItems);
 

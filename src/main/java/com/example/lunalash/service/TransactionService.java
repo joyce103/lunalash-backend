@@ -53,8 +53,9 @@ public class TransactionService {
         transaction.setMemberId(request.getMemberId());
         transaction.setTransactionTime(request.getTransactionTime());
         transaction.setLashArtist(request.getLashArtist());
-        transaction.setAmountBeforeDiscount(request.getAmountBeforeDiscount());
-        transaction.setAmountAfterDiscount(request.getAmountAfterDiscount());
+        // 預設價格為0 後端根據交易明細計算後填入
+        transaction.setAmountBeforeDiscount(java.math.BigDecimal.ZERO);
+        transaction.setAmountAfterDiscount(java.math.BigDecimal.ZERO);
         transaction.setPaymentMethod(request.getPaymentMethod());
         transaction.setRemark(request.getRemark());
 
@@ -66,7 +67,6 @@ public class TransactionService {
 
             OperationItemEntity operationItem = new OperationItemEntity();
             operationItem.setOperationName(opReq.getOperationName());
-            operationItem.setTotalLashCount(opReq.getTotalLashCount());
             operationItem.setStyle(opReq.getStyle());
             operationItem.setThickness(opReq.getThickness());
             operationItem.setBrand(opReq.getBrand());
@@ -74,6 +74,8 @@ public class TransactionService {
             operationItem.setGlueType(opReq.getGlueType());
             operationItem.setRemark(opReq.getRemark());
             operationItem.setTransaction(transaction);
+            // 先預設睫毛跟數為0 後端根據區域資料自行計算填入
+            operationItem.setTotalLashCount(0);
 
             operationItem = operationRepo.save(operationItem);
 
@@ -84,9 +86,16 @@ public class TransactionService {
                 area.setLashLengths(areaReq.getLashLengths());
                 area.setLashCurls(areaReq.getLashCurls());
                 area.setOperationItem(operationItem);
-
+                area.setLashCount(areaReq.getLashCount() != null ? areaReq.getLashCount() : 0);
+                area.setLashLengths(areaReq.getLashLengths());
+                area.setLashCurls(areaReq.getLashCurls());
+                area.setOperationItem(operationItem);
                 areas.add(area);
             }
+            
+            operationItem.setAreaDetails(areas);
+            // 同步計算區域資料並計算總根數
+            operationItem.syncTotalLashCount();
 
             eyelashAreaDetailRepo.saveAll(areas);
         }

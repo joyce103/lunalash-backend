@@ -42,9 +42,13 @@ public class EyelashAreaDetailService {
             entity.setLashLengths(req.getLashLengths());
             entity.setLashCurls(req.getLashCurls());
             entity.setOperationItem(op);
+            op.getAreaDetails().add(entity);
             return entity;
         }).toList();
-
+        // 同步睫毛根數資料
+        op.syncTotalLashCount();
+        // 存檔
+        operationRepo.save(op);
         List<EyelashAreaDetailEntity> savedEntities = areaRepo.saveAll(entities);
 
         return savedEntities.stream().map(this::toResponse).toList();

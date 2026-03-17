@@ -138,4 +138,18 @@ public class OperationItemEntity {
 
     public List<EyelashAreaDetailEntity> getAreaDetails() { return areaDetails; }
     public void setAreaDetails(List<EyelashAreaDetailEntity> areaDetails) { this.areaDetails = areaDetails; }
+    
+
+    // 所有區域的睫毛根數加總
+    public void syncTotalLashCount() {
+        if (this.areaDetails == null || this.areaDetails.isEmpty()) {
+            this.totalLashCount = 0;
+            return;
+        }
+        
+        // 將所有部位的 lashCount 取出並相加 (若為 null 則視為 0)
+        this.totalLashCount = this.areaDetails.stream()
+                .mapToInt(detail -> detail.getLashCount() == null ? 0 : detail.getLashCount())
+                .sum();
+    }
 }
