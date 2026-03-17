@@ -46,7 +46,7 @@ public class MemberEntity implements Serializable {
     private LocalDateTime createdAt;
 
     // 更新時間（由 DB 自動更新）
-    @Column(name = "updated_at", insertable = false, updatable = false)
+    @Column(name = "updated_at", insertable = false)
     private LocalDateTime updatedAt;
 
     // ===== Getter / Setter =====
@@ -110,8 +110,13 @@ public class MemberEntity implements Serializable {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+    
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
+    
 }

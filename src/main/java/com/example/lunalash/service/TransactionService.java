@@ -117,6 +117,11 @@ public class TransactionService {
         }
         transaction.syncAmounts(); 
 	    transactionRepo.save(transaction);
+	    
+	    memberRepo.findById(request.getMemberId()).ifPresent(member -> {
+            member.setUpdatedAt(request.getTransactionTime());
+            memberRepo.save(member);
+        });
 
         return transaction.getTransactionId();
     }
