@@ -1,7 +1,6 @@
 package com.example.lunalash.service;
 
 import com.example.lunalash.dto.BatchCreateAreaRequest;
-import com.example.lunalash.dto.EyelashAreaDetailRequest;
 import com.example.lunalash.dto.EyelashAreaDetailResponse;
 import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.entity.OperationItemEntity;
@@ -11,9 +10,7 @@ import com.example.lunalash.repository.OperationItemRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class EyelashAreaDetailService {

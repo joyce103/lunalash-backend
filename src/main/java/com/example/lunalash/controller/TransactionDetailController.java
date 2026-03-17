@@ -1,6 +1,5 @@
 package com.example.lunalash.controller;
 
-import com.example.lunalash.dto.ApiResponse;
 import com.example.lunalash.dto.TransactionDetailRequest;
 import com.example.lunalash.dto.TransactionDetailResponse;
 import com.example.lunalash.service.TransactionDetailService;

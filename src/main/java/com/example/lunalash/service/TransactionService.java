@@ -19,7 +19,6 @@ import com.example.lunalash.repository.TransactionRecordRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public class TransactionService {
     @Transactional
     public Long createTransaction(TransactionCreateRequest request) {
 
-        // 1️⃣ 建立交易
+        // ️建立交易
         TransactionRecordEntity transaction = new TransactionRecordEntity();
         transaction.setMemberId(request.getMemberId());
         transaction.setTransactionTime(request.getTransactionTime());
@@ -62,7 +61,7 @@ public class TransactionService {
         // 先存交易，讓 transactionId 自動生成
         transaction = transactionRepo.save(transaction);
 
-        // 2️⃣ 建立操作項目
+        // ️建立操作項目
         for (var opReq : request.getOperationItems()) {
 
             OperationItemEntity operationItem = new OperationItemEntity();
@@ -120,9 +119,7 @@ public class TransactionService {
             throw new ResourceNotFoundException("查無此會員");
         }
     	List<TransactionRecordEntity> transactions = transactionRepo.findByMemberId(memberId);
-        if (transactions.isEmpty()) {
-            throw new ResourceNotFoundException("查無相關交易資料");
-        }
+
         return transactions.stream().map(entity -> {
             TransactionSummaryResponse summary = new TransactionSummaryResponse();
             summary.setTransactionId(entity.getTransactionId());

@@ -3,7 +3,6 @@ package com.example.lunalash.controller;
 import com.example.lunalash.dto.BatchCreateAreaRequest;
 import com.example.lunalash.dto.EyelashAreaDetailRequest;
 import com.example.lunalash.dto.EyelashAreaDetailResponse;
-import com.example.lunalash.entity.EyelashAreaDetailEntity;
 import com.example.lunalash.service.EyelashAreaDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
