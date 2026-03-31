@@ -15,6 +15,21 @@ public class GlobalExceptionHandler {
     @Autowired
     private HttpServletRequest request;
 
+    // 處理未授權 / 登入失敗 (401)
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleUnauthorizedException(UnauthorizedException ex) {
+        Long startTime = (Long) request.getAttribute("startTime");
+        if (startTime == null) {
+            startTime = System.currentTimeMillis();
+        }
+
+        // 直接使用你 ApiResponse 裡的 fail 方法
+        ApiResponse<Object> response = ApiResponse.fail(401, ex.getMessage(), startTime);
+
+        // 回傳 401 狀態碼，這樣前端 Axios 攔截器才能進入 error 區塊並精準判斷
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+    
     // 處理資源找不到的例外 (404)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {

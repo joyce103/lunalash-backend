@@ -3,6 +3,7 @@ package com.example.lunalash.controller;
 import com.example.lunalash.dto.LoginRequest;
 import com.example.lunalash.dto.LoginResponse;
 import com.example.lunalash.entity.AdminEntity;
+import com.example.lunalash.exception.UnauthorizedException;
 import com.example.lunalash.repository.AdminRepository;
 import com.example.lunalash.security.JwtUtils;
 import org.springframework.http.HttpStatus;
@@ -27,27 +28,27 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@RequestBody LoginRequest request) {
         
-        // 1. 去資料庫尋找這個帳號
-        Optional<AdminEntity> adminOpt = adminRepo.findByUsername(request.getUsername());
-        
-        // 如果找不到這個人，回傳 401 未授權
-        if (adminOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("帳號或密碼錯誤");
+        // 防呆
+        if (request.getUsername() == null || request.getPassword() == null) {
+            throw new UnauthorizedException("帳號或密碼不能為空"); 
         }
-        
-        AdminEntity admin = adminOpt.get();
 
-        // 2. 比對密碼 (將前端傳來的明文密碼，跟資料庫裡的 BCrypt 亂碼進行比對)
+        // 尋找帳號 (使用 orElseThrow 讓程式碼更簡潔)
+        AdminEntity admin = adminRepo.findByUsername(request.getUsername())
+            .orElseThrow(() -> new UnauthorizedException("帳號或密碼錯誤"));
+
+        // 比對密碼
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("帳號或密碼錯誤");
+            throw new UnauthorizedException("帳號或密碼錯誤");
         }
 
-        // 3. 密碼正確！請 JwtUtils 製作一張專屬 Token
+        // 密碼正確，產生 Token
         String token = jwtUtils.generateToken(admin.getUsername());
 
-        // 4. 把 Token 跟管理員的名字回傳給前端
-        return ResponseEntity.ok(new LoginResponse(token, admin.getName()));
+        // 直接回傳資料本體
+        // 你的 ResponseWrapperAdvice 會自動把它變成 { resultCode: 0, resultData: {token: "...", name: "..."}, ... }
+        return new LoginResponse(token, admin.getName());
     }
 }
