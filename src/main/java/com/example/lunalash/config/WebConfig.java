@@ -16,7 +16,16 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 套用到所有的 API 路徑
-        registry.addInterceptor(executionTimeInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(executionTimeInterceptor)
+        		.addPathPatterns("/**")
+		        .excludePathPatterns(
+		                "/api/auth/login",
+		                "/swagger-ui/**",
+		                "/swagger-ui.html",
+		                "/v3/api-docs/**",
+		                "/api-docs/**",
+		                "/webjars/**"
+		        );
     }
     
     // 跨域 (CORS) 設定

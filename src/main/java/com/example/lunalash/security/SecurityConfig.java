@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() 
                 
                 .requestMatchers("/api/auth/login").permitAll() // 登入 API 完全放行
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
                 .anyRequest().authenticated() // 其他所有 API 都必須要有合法 Token
             );
         

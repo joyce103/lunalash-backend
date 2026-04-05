@@ -61,4 +61,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
         return null;
     }
+    
+    // 遇到 Swagger 相關路徑，直接閉眼放行，不執行 JwtAuthFilter
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/swagger-ui") || 
+               path.startsWith("/v3/api-docs") || 
+               path.startsWith("/api-docs") ||
+               path.startsWith("/webjars");
+    }
 }
