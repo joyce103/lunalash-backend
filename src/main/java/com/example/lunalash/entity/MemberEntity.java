@@ -48,6 +48,14 @@ public class MemberEntity implements Serializable {
     // 更新時間（由 DB 自動更新）
     @Column(name = "updated_at", insertable = false)
     private LocalDateTime updatedAt;
+    
+    // 是否同意服務條款
+    @Column(name = "is_terms_agreed", nullable = false)
+    private Boolean isTermsAgreed = false;
+
+    // 同意服務條款時間（只有在 isTermsAgreed 為 true 時才寫入時間）
+    @Column(name = "terms_agreed_time")
+    private LocalDateTime termsAgreedTime;
 
     // ===== Getter / Setter =====
 
@@ -117,6 +125,22 @@ public class MemberEntity implements Serializable {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+    
+    public void setIsTermsAgreed(Boolean isTermsAgreed) {
+    	this.isTermsAgreed = isTermsAgreed;
+    }
+    
+    public Boolean getIsTermsAgreed() {
+    	return isTermsAgreed;
+    }
+    
+    public void setTermsAgreedTime(LocalDateTime termsAgreedTime) {
+    	this.termsAgreedTime = termsAgreedTime;
+    }
+    
+    public LocalDateTime getTermsAgreedTime() {
+    	return termsAgreedTime;
     }
     
 }

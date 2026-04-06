@@ -10,6 +10,7 @@ public class MemberUpdateRequest {
     private LocalDate birthday;
     private String memberLevel;
     private String lineId;
+    private Boolean isTermsAgreed;
     
     public Long getMemberId() {
         return memberId;
@@ -66,4 +67,13 @@ public class MemberUpdateRequest {
     public void setLineId(String lineId) {
         this.lineId = lineId;
     }
+    
+    public void setIsTermsAgreed(Boolean isTermsAgreed) {
+    	this.isTermsAgreed = isTermsAgreed;
+    }
+    
+    public Boolean getIsTermsAgreed() {
+    	return isTermsAgreed;
+    }
+    
 }

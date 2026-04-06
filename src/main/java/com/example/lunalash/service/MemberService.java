@@ -7,6 +7,8 @@ import com.example.lunalash.repository.MemberRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,6 +31,9 @@ public class MemberService {
     }
 
     public MemberEntity createMember(MemberEntity member) {
+    	if (Boolean.TRUE.equals(member.getIsTermsAgreed())) {
+    	    member.setTermsAgreedTime(LocalDateTime.now());
+    	}
         return memberRepository.save(member);
     }
     
@@ -42,7 +47,12 @@ public class MemberService {
         if (request.getBirthday() != null) member.setBirthday(request.getBirthday());
         if (StringUtils.hasText(request.getMemberLevel())) member.setMemberLevel(request.getMemberLevel());
         if (StringUtils.hasText(request.getLineId())) member.setLineId(request.getLineId());
-
+        member.setIsTermsAgreed(request.getIsTermsAgreed());
+        // 如果使用者勾選同意條款 則更新時間
+    	if (Boolean.TRUE.equals(member.getIsTermsAgreed())) {
+    	    member.setTermsAgreedTime(LocalDateTime.now());
+    	}
+        
         return memberRepository.save(member);
     }
 }
