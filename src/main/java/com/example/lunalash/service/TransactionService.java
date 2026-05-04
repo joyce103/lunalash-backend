@@ -76,6 +76,10 @@ public class TransactionService {
             operationItem.setTransaction(transaction);
             // 先預設睫毛跟數為0 後端根據區域資料自行計算填入
             operationItem.setTotalLashCount(0);
+            // 存取圖片
+            if (opReq.getImageUrls() != null) {
+                operationItem.setImageUrls(opReq.getImageUrls());
+            }
 
             operationItem = operationRepo.save(operationItem);
 
@@ -178,6 +182,7 @@ public class TransactionService {
             opDto.setCategory(op.getCategory());
             opDto.setGlueType(op.getGlueType());
             opDto.setRemark(op.getRemark());
+            opDto.setImageUrls(op.getImageUrls());
             
             // 4. 轉換睫毛區域明細 (第二層 List)
             opDto.setEyelashAreaDetails(op.getAreaDetails().stream().map(area -> {

@@ -47,6 +47,15 @@ public class OperationItemEntity {
     @Column(columnDefinition = "TEXT")
     private String remark;
     
+    
+    @ElementCollection
+    @CollectionTable(
+        name = "operation_item_images", 
+        joinColumns = @JoinColumn(name = "operation_item_id")
+    )
+    @Column(name = "image_url", length = 500)
+    private List<String> imageUrls = new ArrayList<>();
+    
     @OneToMany(
 	    mappedBy = "operationItem",
 	    cascade = CascadeType.ALL,
@@ -151,5 +160,13 @@ public class OperationItemEntity {
         this.totalLashCount = this.areaDetails.stream()
                 .mapToInt(detail -> detail.getLashCount() == null ? 0 : detail.getLashCount())
                 .sum();
+    }
+    
+    public List<String> getImageUrls() {
+        return imageUrls;
+    }
+
+    public void setImageUrls(List<String> imageUrls) {
+        this.imageUrls = imageUrls;
     }
 }

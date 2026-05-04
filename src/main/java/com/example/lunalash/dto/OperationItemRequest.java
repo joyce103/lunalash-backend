@@ -1,5 +1,6 @@
 package com.example.lunalash.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -14,6 +15,7 @@ public class OperationItemRequest {
     private String category;
     private String glueType;
     private String remark;
+    private List<String> imageUrls = new ArrayList<>();
     private List<EyelashAreaDetailRequest> eyelashAreaDetail;
 
     // --- Getter & Setter ---
@@ -88,6 +90,14 @@ public class OperationItemRequest {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+    
+    public List<String> getImageUrls() {
+    	return imageUrls;
+    }
+    
+    public void setImageUrls(List<String> imageUrls) {
+    	this.imageUrls = imageUrls;
     }
 
     public List<EyelashAreaDetailRequest> getEyelashAreaDetail() {

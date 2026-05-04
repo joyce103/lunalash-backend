@@ -50,7 +50,9 @@ public class OperationItemService {
         operationItem.setBrand(request.getBrand());
         operationItem.setCategory(request.getCategory());
         operationItem.setGlueType(request.getGlueType());
-        
+        if (request.getImageUrls() != null) {
+            operationItem.setImageUrls(request.getImageUrls());
+        }
         operationItem.setTotalLashCount(0);
 
         // 先操作項目，讓 operationItemId 自動生成
@@ -102,6 +104,8 @@ public class OperationItemService {
         resp.setCategory(entity.getCategory());
         resp.setGlueType(entity.getGlueType());
         resp.setRemark(entity.getRemark());
+        resp.setImageUrls(entity.getImageUrls());
+        
 
         // 轉換內層區域資料 (對應到 OperationItemEntity 中 getAreaDetails() 方法)
         if (entity.getAreaDetails() != null) {
