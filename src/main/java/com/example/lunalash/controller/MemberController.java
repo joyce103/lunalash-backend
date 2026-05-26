@@ -1,14 +1,21 @@
 package com.example.lunalash.controller;
 
+import com.example.lunalash.dto.MemberQueryRequest;
+import com.example.lunalash.dto.MemberUpdateRequest;
 import com.example.lunalash.entity.MemberEntity;
 import com.example.lunalash.service.MemberService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/member")
+@RequestMapping("/member")
+@Tag(name = "會員")
 public class MemberController {
 
     private final MemberService memberService;
@@ -18,21 +25,30 @@ public class MemberController {
         this.memberService = memberService;
     }
 
-    // 取得所有會員
+    @Operation(summary = "查詢所有會員")
     @GetMapping("/getAllMembers")
     public List<MemberEntity> getAllMembers() {
         return memberService.getAllMembers();
     }
 
-    // 依照ID取得單一會員
-    @GetMapping("/getMember/{id}")
-    public MemberEntity getMemberById(@PathVariable Long id) {
-        return memberService.getMemberById(id);
+    
+    @Operation(summary = "手機號碼查詢會員")
+    @PostMapping("/getMemberByPhone")
+    public MemberEntity getMemberByPhone(@RequestBody MemberQueryRequest request) {
+        return memberService.getMemberByPhone(request.getPhone());
     }
 
-    // 新增會員
+    @Operation(summary = "新增會員資料")
     @PostMapping("/addMember")
     public MemberEntity createMember(@RequestBody MemberEntity member) {
         return memberService.createMember(member);
+    }
+    
+    @Operation(summary = "修改會員資料")
+    @PutMapping("/updateMember")
+    public MemberEntity update(
+            @RequestBody MemberUpdateRequest request
+    ) {
+    	return memberService.updateMember(request);
     }
 }
