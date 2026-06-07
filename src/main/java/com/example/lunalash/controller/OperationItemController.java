@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/operationItems")
+@RequestMapping("/api/operationItems")
 @Tag(name = "操作項目")
 public class OperationItemController {
 

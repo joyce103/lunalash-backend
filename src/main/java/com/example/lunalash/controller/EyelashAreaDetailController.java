@@ -12,7 +12,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/operationArea")
+@RequestMapping("/api/operationArea")
 @Tag(name = "操作區域資料")
 public class EyelashAreaDetailController {
 
