@@ -9,7 +9,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # 第二階段：執行環境 (使用輕量級的 JRE)
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 # 把第一階段打包好的 jar 檔拿過來
 COPY --from=build /app/target/*.jar app.jar

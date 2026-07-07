@@ -21,6 +21,10 @@ public class AdminEntity {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    private AdminRole role = AdminRole.ADMIN;
+
     @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;
 
@@ -59,6 +63,18 @@ public class AdminEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public AdminRole getRole() {
+        return role;
+    }
+
+    public void setRole(AdminRole role) {
+        this.role = role;
+    }
+
+    public boolean isSuperAdmin() {
+        return role == AdminRole.SUPER_ADMIN;
     }
 
     public LocalDateTime getCreatedAt() {

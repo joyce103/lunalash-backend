@@ -2,83 +2,103 @@ package com.example.lunalash.exception;
 
 import com.example.lunalash.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import jakarta.validation.ConstraintViolationException;
+import java.util.stream.Collectors;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Autowired
     private HttpServletRequest request;
 
-    // 處理未授權 / 登入失敗 (401)
+    private long getStartTime() {
+        Long startTime = (Long) request.getAttribute("startTime");
+        return startTime != null ? startTime : System.currentTimeMillis();
+    }
+
+    private ResponseEntity<ApiResponse<Object>> build(HttpStatus status, int resultCode, String msg) {
+        ApiResponse<Object> response = ApiResponse.fail(resultCode, msg, getStartTime());
+        return new ResponseEntity<>(response, status);
+    }
+
+    // 401：未登入 / 帳密錯誤 / Token 無效
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponse<Object>> handleUnauthorizedException(UnauthorizedException ex) {
-        Long startTime = (Long) request.getAttribute("startTime");
-        if (startTime == null) {
-            startTime = System.currentTimeMillis();
-        }
-
-        // 直接使用你 ApiResponse 裡的 fail 方法
-        ApiResponse<Object> response = ApiResponse.fail(401, ex.getMessage(), startTime);
-
-        // 回傳 401 狀態碼，這樣前端 Axios 攔截器才能進入 error 區塊並精準判斷
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+        log.warn("未授權請求：{}", ex.getMessage());
+        return build(HttpStatus.UNAUTHORIZED, 401, ex.getMessage());
     }
-    
-    // 處理資源找不到的例外 (404)
+
+    // 403：已登入但權限不足
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDenied(AccessDeniedException ex) {
+        log.warn("權限不足：{}", ex.getMessage());
+        return build(HttpStatus.FORBIDDEN, 403, "權限不足，無法執行此操作");
+    }
+
+    // 400：@Valid 驗證失敗，彙整每個欄位的錯誤訊息
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Object>> handleValidationException(MethodArgumentNotValidException ex) {
+        String msg = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + "：" + fe.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        log.warn("輸入驗證失敗：{}", msg);
+        return build(HttpStatus.BAD_REQUEST, 400, msg.isEmpty() ? "輸入資料格式錯誤" : msg);
+    }
+
+    // 400：Bean Validation（例如 @Validated 在路徑/查詢參數上）驗證失敗
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        log.warn("參數驗證失敗：{}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, 400, ex.getMessage());
+    }
+
+    // 400：Request Body 不是合法 JSON，或型別對不上
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        log.warn("請求內容格式錯誤：{}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, 400, "請求內容格式錯誤，請確認送出的資料格式");
+    }
+
+    // 400：業務邏輯上的非法參數（例如缺少必要欄位、格式不符）
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("非法參數：{}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, 400, ex.getMessage());
+    }
+
+    // 404（以 resultCode 表達，HTTP 狀態維持 200）：
+    // 前端既有頁面會直接檢查 resultCode 決定顯示「查無資料」，改成非 2xx 會讓這些頁面誤判為系統錯誤，故維持原行為
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        // 從 Request 中取得開始時間，若無則以當前時間代替
-        Long startTime = (Long) request.getAttribute("startTime");
-        if (startTime == null) {
-            startTime = System.currentTimeMillis();
-        }
-
-        // 建立統一格式的失敗回應
-        ApiResponse<Object> response = new ApiResponse<>();
-        response.setResultCode(404);
-        response.setResultMsg(ex.getMessage());
-        
-        // 計算實際執行的耗時，不再寫死為 0ms
-        long duration = System.currentTimeMillis() - startTime;
-        response.setRunTime(duration + "ms");
-        response.setResultData(null);
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        log.info("查無資源：{}", ex.getMessage());
+        return build(HttpStatus.OK, 404, ex.getMessage());
     }
 
-    // 處理所有未預期的系統錯誤 (500)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGeneralException(Exception ex) {
-        Long startTime = (Long) request.getAttribute("startTime");
-        if (startTime == null) {
-            startTime = System.currentTimeMillis();
-        }
-
-        ApiResponse<Object> response = new ApiResponse<>();
-        response.setResultCode(500);
-        response.setResultMsg("系統發生非預期錯誤：" + ex.getMessage());
-        
-        long duration = System.currentTimeMillis() - startTime;
-        response.setRunTime(duration + "ms");
-        response.setResultData(null);
-
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-    
+    // 404：路徑本身不存在
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleNoHandlerFound(NoHandlerFoundException ex) {
-        ApiResponse<Object> response = new ApiResponse<>();
-        response.setResultCode(404);
-        response.setResultMsg("API 路徑不存在：" + ex.getRequestURL());
-        response.setRunTime("0ms"); 
-        response.setResultData(null);
+        log.warn("API 路徑不存在：{}", ex.getRequestURL());
+        return build(HttpStatus.NOT_FOUND, 404, "API 路徑不存在：" + ex.getRequestURL());
+    }
 
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    // 500：所有未預期的系統錯誤。詳細例外訊息只寫進伺服器 log，絕不回傳給前端，避免洩漏內部實作細節
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleGeneralException(Exception ex) {
+        log.error("系統發生非預期錯誤", ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, 500, "系統發生錯誤，請稍後再試");
     }
 }
