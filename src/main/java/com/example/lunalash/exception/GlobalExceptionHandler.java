@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -78,6 +79,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
         log.warn("非法參數：{}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, 400, ex.getMessage());
+    }
+
+    // 409：核准預約時，同一時段已經被別的預約搶先核准 (race condition)
+    @ExceptionHandler(SlotConflictException.class)
+    public ResponseEntity<ApiResponse<Object>> handleSlotConflict(SlotConflictException ex) {
+        log.warn("時段衝突：{}", ex.getMessage());
+        return build(HttpStatus.CONFLICT, 409, ex.getMessage());
+    }
+
+    // 400：資料庫層級的約束衝突（例如刪除還被其他資料引用的服務項目）
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("資料庫約束衝突：{}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, 400, "此資料仍被其他紀錄使用，無法執行此操作");
     }
 
     // 404（以 resultCode 表達，HTTP 狀態維持 200）：
