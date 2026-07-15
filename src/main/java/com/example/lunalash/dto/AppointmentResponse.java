@@ -5,12 +5,13 @@ import com.example.lunalash.entity.AppointmentEntity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 public class AppointmentResponse {
 
     private Long appointmentId;
-    private Long serviceId;
-    private String serviceName;
+    private List<OperationCatalogItemResponse> operationItems;
+    private Integer totalDurationMinutes;
     private String customerName;
     private String customerPhone;
     private String lineUserId;
@@ -21,8 +22,8 @@ public class AppointmentResponse {
 
     public AppointmentResponse(AppointmentEntity entity) {
         this.appointmentId = entity.getAppointmentId();
-        this.serviceId = entity.getServiceItem().getServiceItemId();
-        this.serviceName = entity.getServiceItem().getName();
+        this.operationItems = entity.getOperationItems().stream().map(OperationCatalogItemResponse::new).toList();
+        this.totalDurationMinutes = entity.getTotalDurationMinutes();
         this.customerName = entity.getCustomerName();
         this.customerPhone = entity.getCustomerPhone();
         this.lineUserId = entity.getLineUserId();
@@ -33,8 +34,8 @@ public class AppointmentResponse {
     }
 
     public Long getAppointmentId() { return appointmentId; }
-    public Long getServiceId() { return serviceId; }
-    public String getServiceName() { return serviceName; }
+    public List<OperationCatalogItemResponse> getOperationItems() { return operationItems; }
+    public Integer getTotalDurationMinutes() { return totalDurationMinutes; }
     public String getCustomerName() { return customerName; }
     public String getCustomerPhone() { return customerPhone; }
     public String getLineUserId() { return lineUserId; }

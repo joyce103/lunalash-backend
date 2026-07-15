@@ -2,10 +2,10 @@ package com.example.lunalash.service;
 
 import com.example.lunalash.dto.SlotSetRequest;
 import com.example.lunalash.dto.SlotStatusResponse;
-import com.example.lunalash.entity.AppointmentStatus;
+import com.example.lunalash.entity.AppointmentSlotLockEntity;
 import com.example.lunalash.entity.AvailableDateEntity;
 import com.example.lunalash.entity.AvailableSlotEntity;
-import com.example.lunalash.repository.AppointmentRepository;
+import com.example.lunalash.repository.AppointmentSlotLockRepository;
 import com.example.lunalash.repository.AvailableDateRepository;
 import com.example.lunalash.repository.AvailableSlotRepository;
 import org.springframework.stereotype.Service;
@@ -28,17 +28,33 @@ public class AvailableSlotService {
 
     private final AvailableDateRepository dateRepo;
     private final AvailableSlotRepository slotRepo;
-    private final AppointmentRepository appointmentRepo;
+    private final AppointmentSlotLockRepository slotLockRepo;
 
-    public AvailableSlotService(AvailableDateRepository dateRepo, AvailableSlotRepository slotRepo, AppointmentRepository appointmentRepo) {
+    public AvailableSlotService(AvailableDateRepository dateRepo, AvailableSlotRepository slotRepo, AppointmentSlotLockRepository slotLockRepo) {
         this.dateRepo = dateRepo;
         this.slotRepo = slotRepo;
-        this.appointmentRepo = appointmentRepo;
+        this.slotLockRepo = slotLockRepo;
+    }
+
+    // 操作項目時間加總後，換算要占用幾個固定時段 (無條件進位，例如 90 分鐘要占用 2 個時段)
+    public static int occupiedSlotCount(int totalDurationMinutes) {
+        return (int) Math.ceil(totalDurationMinutes / 60.0);
+    }
+
+    // 從 startTime 開始，這次預約會連續占用哪些固定時段；如果會超出每日的固定時段範圍 (超過打烊時間) 就回傳 null
+    public static List<LocalTime> getOccupiedSlotTimes(LocalTime startTime, int totalDurationMinutes) {
+        int slotCount = occupiedSlotCount(totalDurationMinutes);
+        int startIndex = FIXED_SLOT_TIMES.indexOf(startTime);
+        if (startIndex < 0 || startIndex + slotCount > FIXED_SLOT_TIMES.size()) {
+            return null;
+        }
+        return FIXED_SLOT_TIMES.subList(startIndex, startIndex + slotCount);
     }
 
     // 訪客查詢某天時段狀態：AVAILABLE 可預約 / BOOKED 已預約 / CLOSED 未開放
-    // Pending、Rejected 都視為空檔，只有 Approved 會真正占用時段
-    public List<SlotStatusResponse> getSlotStatusForDate(LocalDate date) {
+    // 這裡的「未開放」也包含「時間加總後會超過營業時間，或占用範圍裡有任何一個時段沒開放」的情況
+    // Pending、Rejected 都視為空檔，只有 Approved 會真正占用時段 (反映在 appointment_slot_lock 表裡)
+    public List<SlotStatusResponse> getSlotStatusForDate(LocalDate date, int totalDurationMinutes) {
         boolean dateOpen = dateRepo.findByAppointmentDate(date).map(AvailableDateEntity::getIsOpen).orElse(false);
 
         Set<LocalTime> openTimes = dateOpen
@@ -46,18 +62,19 @@ public class AvailableSlotService {
                     .map(AvailableSlotEntity::getSlotTime).collect(Collectors.toSet())
                 : Set.of();
 
-        Set<LocalTime> bookedTimes = appointmentRepo.findByAppointmentDateAndStatus(date, AppointmentStatus.APPROVED).stream()
-                .map(com.example.lunalash.entity.AppointmentEntity::getAppointmentTime)
+        Set<LocalTime> lockedTimes = slotLockRepo.findBySlotDate(date).stream()
+                .map(AppointmentSlotLockEntity::getSlotTime)
                 .collect(Collectors.toSet());
 
         return FIXED_SLOT_TIMES.stream()
-                .map(time -> new SlotStatusResponse(time, resolveStatus(time, openTimes, bookedTimes)))
+                .map(time -> new SlotStatusResponse(time, resolveStatus(time, totalDurationMinutes, openTimes, lockedTimes)))
                 .toList();
     }
 
-    private String resolveStatus(LocalTime time, Set<LocalTime> openTimes, Set<LocalTime> bookedTimes) {
-        if (!openTimes.contains(time)) return "CLOSED";
-        if (bookedTimes.contains(time)) return "BOOKED";
+    private String resolveStatus(LocalTime startTime, int totalDurationMinutes, Set<LocalTime> openTimes, Set<LocalTime> lockedTimes) {
+        List<LocalTime> span = getOccupiedSlotTimes(startTime, totalDurationMinutes);
+        if (span == null || !span.stream().allMatch(openTimes::contains)) return "CLOSED";
+        if (span.stream().anyMatch(lockedTimes::contains)) return "BOOKED";
         return "AVAILABLE";
     }
 
@@ -104,10 +121,16 @@ public class AvailableSlotService {
         return getSlotConfigForDate(date);
     }
 
-    boolean isSlotOpen(LocalDate date, LocalTime time) {
-        return dateRepo.findByAppointmentDate(date)
-                .map(availableDate -> slotRepo.findByAvailableDateAndSlotTime(availableDate, time)
-                        .map(AvailableSlotEntity::getIsOpen).orElse(false))
-                .orElse(false);
+    // 檢查指定的一段連續時段是否「每一個」都是開放狀態 (送出預約前用)
+    public boolean areSlotsOpen(LocalDate date, List<LocalTime> times) {
+        AvailableDateEntity availableDate = dateRepo.findByAppointmentDate(date).orElse(null);
+        if (availableDate == null || !Boolean.TRUE.equals(availableDate.getIsOpen())) return false;
+
+        for (LocalTime time : times) {
+            boolean open = slotRepo.findByAvailableDateAndSlotTime(availableDate, time)
+                    .map(AvailableSlotEntity::getIsOpen).orElse(false);
+            if (!open) return false;
+        }
+        return true;
     }
 }

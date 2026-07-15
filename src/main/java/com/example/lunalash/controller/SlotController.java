@@ -2,6 +2,7 @@ package com.example.lunalash.controller;
 
 import com.example.lunalash.dto.SlotStatusResponse;
 import com.example.lunalash.service.AvailableSlotService;
+import com.example.lunalash.service.OperationCatalogItemService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,17 +24,22 @@ import java.util.List;
 public class SlotController {
 
     private final AvailableSlotService availableSlotService;
+    private final OperationCatalogItemService operationCatalogItemService;
 
-    public SlotController(AvailableSlotService availableSlotService) {
+    public SlotController(AvailableSlotService availableSlotService, OperationCatalogItemService operationCatalogItemService) {
         this.availableSlotService = availableSlotService;
+        this.operationCatalogItemService = operationCatalogItemService;
     }
 
-    @Operation(summary = "查詢某一天各時段的狀態 (AVAILABLE / BOOKED / CLOSED)")
+    @Operation(summary = "查詢某一天各時段的狀態 (AVAILABLE / BOOKED / CLOSED)，會依所選操作項目的時間加總判斷是否能容納")
     @GetMapping
     public List<SlotStatusResponse> getSlots(
             @Parameter(description = "日期，格式 yyyy-MM-dd")
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(description = "選擇的操作項目 id 清單，用逗號分隔")
+            @RequestParam List<Long> operationItemIds
     ) {
-        return availableSlotService.getSlotStatusForDate(date);
+        int totalDurationMinutes = operationCatalogItemService.sumDurationMinutes(operationItemIds);
+        return availableSlotService.getSlotStatusForDate(date, totalDurationMinutes);
     }
 }

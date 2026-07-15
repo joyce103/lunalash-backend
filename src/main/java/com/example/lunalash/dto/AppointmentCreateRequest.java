@@ -1,17 +1,19 @@
 package com.example.lunalash.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 public class AppointmentCreateRequest {
 
-    @NotNull(message = "請選擇服務項目")
-    private Long serviceId;
+    @NotEmpty(message = "請至少選擇一個操作項目")
+    private List<Long> operationItemIds;
 
     @NotNull(message = "請選擇預約日期")
     private LocalDate date;
@@ -28,8 +30,8 @@ public class AppointmentCreateRequest {
     @Pattern(regexp = "^[0-9+\\-\\s()]+$", message = "電話只能包含數字、+、-、空格、括號")
     private String customerPhone;
 
-    public Long getServiceId() { return serviceId; }
-    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+    public List<Long> getOperationItemIds() { return operationItemIds; }
+    public void setOperationItemIds(List<Long> operationItemIds) { this.operationItemIds = operationItemIds; }
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
     public LocalTime getTime() { return time; }

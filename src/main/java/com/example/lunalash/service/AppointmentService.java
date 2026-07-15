@@ -4,33 +4,39 @@ import com.example.lunalash.dto.AppointmentCreateRequest;
 import com.example.lunalash.dto.AppointmentResponse;
 import com.example.lunalash.dto.DashboardStatsResponse;
 import com.example.lunalash.entity.AppointmentEntity;
+import com.example.lunalash.entity.AppointmentSlotLockEntity;
 import com.example.lunalash.entity.AppointmentStatus;
-import com.example.lunalash.entity.ServiceItemEntity;
+import com.example.lunalash.entity.OperationCatalogItemEntity;
 import com.example.lunalash.exception.ResourceNotFoundException;
 import com.example.lunalash.exception.SlotConflictException;
 import com.example.lunalash.repository.AppointmentRepository;
-import com.example.lunalash.repository.ServiceItemRepository;
+import com.example.lunalash.repository.AppointmentSlotLockRepository;
+import com.example.lunalash.repository.OperationCatalogItemRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
 public class AppointmentService {
 
     private final AppointmentRepository appointmentRepo;
-    private final ServiceItemRepository serviceItemRepo;
+    private final OperationCatalogItemRepository operationCatalogRepo;
+    private final AppointmentSlotLockRepository slotLockRepo;
     private final AvailableSlotService availableSlotService;
     private final NotificationService notificationService;
 
     public AppointmentService(AppointmentRepository appointmentRepo,
-                               ServiceItemRepository serviceItemRepo,
+                               OperationCatalogItemRepository operationCatalogRepo,
+                               AppointmentSlotLockRepository slotLockRepo,
                                AvailableSlotService availableSlotService,
                                NotificationService notificationService) {
         this.appointmentRepo = appointmentRepo;
-        this.serviceItemRepo = serviceItemRepo;
+        this.operationCatalogRepo = operationCatalogRepo;
+        this.slotLockRepo = slotLockRepo;
         this.availableSlotService = availableSlotService;
         this.notificationService = notificationService;
     }
@@ -40,18 +46,27 @@ public class AppointmentService {
         if (request.getDate().isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("不能預約過去的日期");
         }
-        ServiceItemEntity service = serviceItemRepo.findById(request.getServiceId())
-                .orElseThrow(() -> new IllegalArgumentException("找不到此服務項目"));
-        if (!Boolean.TRUE.equals(service.getIsActive())) {
-            throw new IllegalArgumentException("此服務項目目前無法預約");
-        }
         if (!AvailableSlotService.FIXED_SLOT_TIMES.contains(request.getTime())) {
             throw new IllegalArgumentException("不是合法的預約時段");
         }
-        if (!availableSlotService.isSlotOpen(request.getDate(), request.getTime())) {
+
+        List<OperationCatalogItemEntity> operationItems = operationCatalogRepo.findAllById(request.getOperationItemIds());
+        if (operationItems.size() != request.getOperationItemIds().size()) {
+            throw new IllegalArgumentException("有操作項目不存在，請重新整理頁面後再試一次");
+        }
+        if (operationItems.stream().anyMatch(item -> !Boolean.TRUE.equals(item.getIsActive()))) {
+            throw new IllegalArgumentException("所選的操作項目中，有項目目前無法預約");
+        }
+
+        int totalDurationMinutes = operationItems.stream().mapToInt(OperationCatalogItemEntity::getDurationMinutes).sum();
+        List<LocalTime> occupiedSlots = AvailableSlotService.getOccupiedSlotTimes(request.getTime(), totalDurationMinutes);
+        if (occupiedSlots == null) {
+            throw new IllegalArgumentException("所選項目的時間加總超過營業時間，請重新選擇時段或減少項目");
+        }
+        if (!availableSlotService.areSlotsOpen(request.getDate(), occupiedSlots)) {
             throw new IllegalArgumentException("此日期時段尚未開放預約");
         }
-        if (appointmentRepo.existsByAppointmentDateAndAppointmentTimeAndStatus(request.getDate(), request.getTime(), AppointmentStatus.APPROVED)) {
+        if (occupiedSlots.stream().anyMatch(time -> slotLockRepo.existsBySlotDateAndSlotTime(request.getDate(), time))) {
             throw new IllegalArgumentException("此時段已被預約，請選擇其他時段");
         }
         long phoneDigitCount = request.getCustomerPhone().chars().filter(Character::isDigit).count();
@@ -60,7 +75,8 @@ public class AppointmentService {
         }
 
         AppointmentEntity appointment = new AppointmentEntity();
-        appointment.setServiceItem(service);
+        appointment.setOperationItems(operationItems);
+        appointment.setTotalDurationMinutes(totalDurationMinutes);
         appointment.setCustomerName(request.getCustomerName().trim());
         appointment.setCustomerPhone(request.getCustomerPhone().trim());
         appointment.setAppointmentDate(request.getDate());
@@ -79,18 +95,37 @@ public class AppointmentService {
                 .toList();
     }
 
-    // 核准：立即占用時段。若已經有其他 Approved 搶先占用同一時段，資料庫的唯一索引會擋下來，這裡轉成友善訊息
+    // 核准：把這次預約占用的每個固定時段都寫進 appointment_slot_lock (每個時段有唯一索引)。
+    // 如果同一個時段已經被別的預約搶先核准占用，flush 時會違反唯一索引丟出例外，交易整批 rollback，轉成友善訊息。
     @Transactional
     public AppointmentResponse approve(Long appointmentId) {
         AppointmentEntity appointment = getPendingAppointment(appointmentId);
-        appointment.setStatus(AppointmentStatus.APPROVED);
+
+        List<LocalTime> occupiedSlots = AvailableSlotService.getOccupiedSlotTimes(
+                appointment.getAppointmentTime(), appointment.getTotalDurationMinutes());
+        if (occupiedSlots == null) {
+            throw new IllegalArgumentException("此預約的時段設定異常，無法核准");
+        }
+
+        List<AppointmentSlotLockEntity> locks = occupiedSlots.stream().map(time -> {
+            AppointmentSlotLockEntity lock = new AppointmentSlotLockEntity();
+            lock.setSlotDate(appointment.getAppointmentDate());
+            lock.setSlotTime(time);
+            lock.setAppointmentId(appointment.getAppointmentId());
+            return lock;
+        }).toList();
+
         try {
-            AppointmentEntity saved = appointmentRepo.saveAndFlush(appointment);
-            notificationService.sendApproved(saved);
-            return new AppointmentResponse(saved);
+            slotLockRepo.saveAll(locks);
+            slotLockRepo.flush();
         } catch (DataIntegrityViolationException e) {
             throw new SlotConflictException("此時段已被其他預約占用");
         }
+
+        appointment.setStatus(AppointmentStatus.APPROVED);
+        AppointmentEntity saved = appointmentRepo.save(appointment);
+        notificationService.sendApproved(saved);
+        return new AppointmentResponse(saved);
     }
 
     public AppointmentResponse reject(Long appointmentId) {
