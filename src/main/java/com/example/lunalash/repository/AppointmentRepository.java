@@ -24,6 +24,9 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
     long countByAppointmentDateBetween(LocalDate start, LocalDate end);
 
+    // 後台首頁月曆用：撈整個月的預約 (所有狀態)，依日期時間排序
+    List<AppointmentEntity> findByAppointmentDateBetweenOrderByAppointmentDateAscAppointmentTimeAsc(LocalDate start, LocalDate end);
+
     // 後台搜尋：姓名/電話模糊搜尋、日期、狀態皆為選填
     @Query("SELECT a FROM AppointmentEntity a WHERE " +
            "(:name IS NULL OR a.customerName LIKE CONCAT('%', :name, '%')) AND " +

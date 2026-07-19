@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 // 預約系統用的「操作項目」目錄：訪客預約時可複選，依選擇項目的時間加總決定要占用幾個時段。
-// 跟 ServiceItemEntity（原本單選的服務項目，目前預約表單已改用這張表）是不同概念，故意分開避免混用。
 @Entity
 @Table(name = "operation_catalog_item")
 public class OperationCatalogItemEntity {

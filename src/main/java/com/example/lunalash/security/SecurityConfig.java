@@ -66,9 +66,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login").permitAll() // 登入 API 完全放行
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/api/images/**").permitAll()
 
-                // 預約系統：訪客不需要登入就能查詢服務/月曆/時段，以及送出預約申請
+                // 預約系統：訪客不需要登入就能查詢操作項目/月曆/時段，以及送出預約申請
                 // 注意 /api/admin/** 開頭的管理後台 API 不在這裡放行，一樣要走下面的 anyRequest().authenticated()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/services", "/api/calendar", "/api/available-slots", "/api/operation-catalog").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/calendar", "/api/available-slots", "/api/operation-catalog").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments").permitAll()
 
                 .anyRequest().authenticated() // 其他所有 API 都必須要有合法 Token

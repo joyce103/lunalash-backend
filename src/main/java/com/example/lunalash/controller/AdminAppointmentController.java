@@ -37,6 +37,15 @@ public class AdminAppointmentController {
         return appointmentService.search(name, phone, date, status);
     }
 
+    @Operation(summary = "查詢某個月份的所有預約 (供後台首頁月曆使用，含所有狀態)")
+    @GetMapping("/calendar")
+    public List<AppointmentResponse> getMonthAppointments(
+            @Parameter(description = "年份，例如 2026") @RequestParam int year,
+            @Parameter(description = "月份，1~12") @RequestParam int month
+    ) {
+        return appointmentService.getMonthAppointments(year, month);
+    }
+
     @Operation(summary = "核准預約 (立即占用時段，若已被搶先占用會回傳 409)")
     @PatchMapping("/{appointmentId}/approve")
     public AppointmentResponse approve(@PathVariable Long appointmentId) {

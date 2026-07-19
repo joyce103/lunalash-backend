@@ -95,6 +95,16 @@ public class AppointmentService {
                 .toList();
     }
 
+    // 後台首頁月曆用：整個月所有狀態的預約，讓前端依日期分組畫成月曆
+    public List<AppointmentResponse> getMonthAppointments(int year, int month) {
+        java.time.YearMonth yearMonth = java.time.YearMonth.of(year, month);
+        return appointmentRepo.findByAppointmentDateBetweenOrderByAppointmentDateAscAppointmentTimeAsc(
+                        yearMonth.atDay(1), yearMonth.atEndOfMonth())
+                .stream()
+                .map(AppointmentResponse::new)
+                .toList();
+    }
+
     // 核准：把這次預約占用的每個固定時段都寫進 appointment_slot_lock (每個時段有唯一索引)。
     // 如果同一個時段已經被別的預約搶先核准占用，flush 時會違反唯一索引丟出例外，交易整批 rollback，轉成友善訊息。
     @Transactional
