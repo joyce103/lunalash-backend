@@ -1,6 +1,8 @@
 package com.example.lunalash.controller;
 
+import com.example.lunalash.dto.AppointmentRescheduleRequest;
 import com.example.lunalash.dto.AppointmentResponse;
+import com.example.lunalash.dto.LinkMemberRequest;
 import com.example.lunalash.entity.AppointmentStatus;
 import com.example.lunalash.service.AppointmentService;
 
@@ -8,10 +10,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 // 需要登入才能呼叫，管理者搜尋/審核預約
@@ -56,5 +60,26 @@ public class AdminAppointmentController {
     @PatchMapping("/{appointmentId}/reject")
     public AppointmentResponse reject(@PathVariable Long appointmentId) {
         return appointmentService.reject(appointmentId);
+    }
+
+    @Operation(summary = "手動連結/取消連結會員 (memberId 傳 null 代表取消連結)")
+    @PutMapping("/{appointmentId}/member")
+    public AppointmentResponse linkMember(@PathVariable Long appointmentId, @RequestBody LinkMemberRequest request) {
+        return appointmentService.linkMember(appointmentId, request.getMemberId());
+    }
+
+    @Operation(summary = "調整預約時間 (PENDING 直接改期；APPROVED 會連動搬移 slot lock；REJECTED 不可改期)")
+    @PatchMapping("/{appointmentId}/reschedule")
+    public AppointmentResponse reschedule(@PathVariable Long appointmentId, @Valid @RequestBody AppointmentRescheduleRequest request) {
+        return appointmentService.reschedule(appointmentId, request);
+    }
+
+    @Operation(summary = "查詢這筆預約在指定日期可以改到的開始時間列表 (自己目前占用的時段視為空檔)")
+    @GetMapping("/{appointmentId}/reschedule-slots")
+    public List<LocalTime> getRescheduleSlots(
+            @PathVariable Long appointmentId,
+            @Parameter(description = "日期，格式 yyyy-MM-dd") @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        return appointmentService.getRescheduleSlots(appointmentId, date);
     }
 }

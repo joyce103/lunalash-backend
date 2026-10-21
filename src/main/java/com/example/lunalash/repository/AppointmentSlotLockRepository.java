@@ -15,4 +15,7 @@ public interface AppointmentSlotLockRepository extends JpaRepository<Appointment
     List<AppointmentSlotLockEntity> findBySlotDate(LocalDate slotDate);
 
     boolean existsBySlotDateAndSlotTime(LocalDate slotDate, LocalTime slotTime);
+
+    // 改期時用：先刪掉這筆預約自己目前占用的時段鎖，再寫入新時段的鎖
+    void deleteByAppointmentId(Long appointmentId);
 }

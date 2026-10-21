@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 // NotificationService 的 LINE 存根實作。
 // 目前還沒有串接 LINE Login / LIFF / Messaging API，所以每個方法只先記錄 log，不會真的發送訊息。
 // 之後要接 LINE 時，只需要：
@@ -34,6 +37,13 @@ public class LineNotificationService implements NotificationService {
     @Override
     public void sendReminder(AppointmentEntity appointment) {
         logStub(appointment, "預約前一天提醒");
+    }
+
+    @Override
+    public void sendRescheduled(AppointmentEntity appointment, LocalDate oldDate, LocalTime oldTime) {
+        String eventName = String.format("預約時間已調整（%s %s -> %s %s）",
+                oldDate, oldTime, appointment.getAppointmentDate(), appointment.getAppointmentTime());
+        logStub(appointment, eventName);
     }
 
     private void logStub(AppointmentEntity appointment, String eventName) {

@@ -2,6 +2,9 @@ package com.example.lunalash.service;
 
 import com.example.lunalash.entity.AppointmentEntity;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 // 預約狀態一律透過 LINE 官方帳號通知客人，目前先只保留介面與存根實作 (LineNotificationService)，
 // 之後只要把 LINE Messaging API 的 Channel Access Token 接上、實作這幾個方法即可，
 // 不需要改動呼叫端 (AppointmentService / AppointmentReminderScheduler)
@@ -18,4 +21,7 @@ public interface NotificationService {
 
     // 預約前一天的提醒通知
     void sendReminder(AppointmentEntity appointment);
+
+    // 後台調整預約時間後通知客人，附上改期前的日期時間
+    void sendRescheduled(AppointmentEntity appointment, LocalDate oldDate, LocalTime oldTime);
 }

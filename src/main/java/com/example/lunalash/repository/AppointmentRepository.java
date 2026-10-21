@@ -9,11 +9,17 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<AppointmentEntity, Long> {
 
     boolean existsByAppointmentDateAndAppointmentTimeAndStatus(LocalDate appointmentDate, java.time.LocalTime appointmentTime, AppointmentStatus status);
+
+    // 產生查詢碼時檢查是否已經存在，查詢碼查詢預約時用
+    boolean existsByQueryCode(String queryCode);
+
+    Optional<AppointmentEntity> findByQueryCode(String queryCode);
 
     // 用來算某天已經被核准（真的占用）的時段
     List<AppointmentEntity> findByAppointmentDateAndStatus(LocalDate appointmentDate, AppointmentStatus status);

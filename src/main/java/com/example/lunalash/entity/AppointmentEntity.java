@@ -35,9 +35,20 @@ public class AppointmentEntity {
     @Column(name = "customer_phone", nullable = false, length = 20)
     private String customerPhone;
 
+    // 這筆預約對應的會員；建立時會自動用電話比對現有會員，比對不到就維持 null (訪客身分)，
+    // 後台可以手動重新連結/取消連結，不強制一定要有會員
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private MemberEntity member;
+
     // 預留給之後串接 LINE Login / LIFF / Messaging API，目前一律是 null
     @Column(name = "line_user_id", length = 100)
     private String lineUserId;
+
+    // 客人查詢預約狀態用的查詢碼 (搭配電話)，建立預約時產生，8 碼，排除容易混淆的 0/O/1/I/L；
+    // 既有資料沒有查詢碼，維持 null
+    @Column(name = "query_code", length = 16)
+    private String queryCode;
 
     @Column(name = "appointment_date", nullable = false)
     private LocalDate appointmentDate;
@@ -73,8 +84,14 @@ public class AppointmentEntity {
     public String getCustomerPhone() { return customerPhone; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
 
+    public MemberEntity getMember() { return member; }
+    public void setMember(MemberEntity member) { this.member = member; }
+
     public String getLineUserId() { return lineUserId; }
     public void setLineUserId(String lineUserId) { this.lineUserId = lineUserId; }
+
+    public String getQueryCode() { return queryCode; }
+    public void setQueryCode(String queryCode) { this.queryCode = queryCode; }
 
     public LocalDate getAppointmentDate() { return appointmentDate; }
     public void setAppointmentDate(LocalDate appointmentDate) { this.appointmentDate = appointmentDate; }

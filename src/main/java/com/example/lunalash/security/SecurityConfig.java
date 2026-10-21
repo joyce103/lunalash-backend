@@ -70,6 +70,8 @@ public class SecurityConfig {
                 // 注意 /api/admin/** 開頭的管理後台 API 不在這裡放行，一樣要走下面的 anyRequest().authenticated()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/calendar", "/api/available-slots", "/api/operation-catalog").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments").permitAll()
+                // 客人用電話+查詢碼查詢預約狀態，也完全公開，但只放行這一支路徑，不放寬 /api/appointments/** 其他子路徑
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments/lookup").permitAll()
 
                 .anyRequest().authenticated() // 其他所有 API 都必須要有合法 Token
             );

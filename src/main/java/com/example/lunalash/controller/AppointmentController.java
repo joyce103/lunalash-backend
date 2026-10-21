@@ -1,7 +1,8 @@
 package com.example.lunalash.controller;
 
 import com.example.lunalash.dto.AppointmentCreateRequest;
-import com.example.lunalash.dto.AppointmentResponse;
+import com.example.lunalash.dto.AppointmentLookupRequest;
+import com.example.lunalash.dto.AppointmentPublicResponse;
 import com.example.lunalash.service.AppointmentService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,9 +26,15 @@ public class AppointmentController {
         this.appointmentService = appointmentService;
     }
 
-    @Operation(summary = "訪客送出預約申請")
+    @Operation(summary = "訪客送出預約申請 (回傳精簡資訊，含可用於之後查詢的查詢碼)")
     @PostMapping
-    public AppointmentResponse create(@Valid @RequestBody AppointmentCreateRequest request) {
+    public AppointmentPublicResponse create(@Valid @RequestBody AppointmentCreateRequest request) {
         return appointmentService.createAppointment(request);
+    }
+
+    @Operation(summary = "客人用電話+查詢碼查詢預約狀態 (用 POST 避免電話出現在網址/log 中)")
+    @PostMapping("/lookup")
+    public AppointmentPublicResponse lookup(@Valid @RequestBody AppointmentLookupRequest request) {
+        return appointmentService.lookup(request);
     }
 }

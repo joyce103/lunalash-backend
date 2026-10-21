@@ -14,6 +14,8 @@ public class AppointmentResponse {
     private Integer totalDurationMinutes;
     private String customerName;
     private String customerPhone;
+    private Long memberId;
+    private String memberName;
     private String lineUserId;
     private LocalDate date;
     private LocalTime time;
@@ -26,6 +28,10 @@ public class AppointmentResponse {
         this.totalDurationMinutes = entity.getTotalDurationMinutes();
         this.customerName = entity.getCustomerName();
         this.customerPhone = entity.getCustomerPhone();
+        if (entity.getMember() != null) {
+            this.memberId = entity.getMember().getMemberId();
+            this.memberName = entity.getMember().getName();
+        }
         this.lineUserId = entity.getLineUserId();
         this.date = entity.getAppointmentDate();
         this.time = entity.getAppointmentTime();
@@ -38,6 +44,8 @@ public class AppointmentResponse {
     public Integer getTotalDurationMinutes() { return totalDurationMinutes; }
     public String getCustomerName() { return customerName; }
     public String getCustomerPhone() { return customerPhone; }
+    public Long getMemberId() { return memberId; }
+    public String getMemberName() { return memberName; }
     public String getLineUserId() { return lineUserId; }
     public LocalDate getDate() { return date; }
     public LocalTime getTime() { return time; }
