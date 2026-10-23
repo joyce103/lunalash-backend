@@ -17,10 +17,14 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final String fromName;
+    private final String fromAddress;
 
-    public EmailService(JavaMailSender mailSender, @Value("${mail.from-name}") String fromName) {
+    public EmailService(JavaMailSender mailSender,
+                         @Value("${mail.from-name}") String fromName,
+                         @Value("${spring.mail.username}") String fromAddress) {
         this.mailSender = mailSender;
         this.fromName = fromName;
+        this.fromAddress = fromAddress;
     }
 
     // 寄信失敗 (帳密錯誤、SMTP 連不上等) 只記 log，不往外拋例外，
@@ -28,7 +32,9 @@ public class EmailService {
     public void send(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromName);
+            // fromName 只是顯示名稱，不是合法的 email 地址，寄件人要用 "顯示名稱 <實際地址>" 這種格式，
+            // 實際地址一定要用 Gmail 帳號本身 (spring.mail.username)，否則 Gmail SMTP 會直接拒絕
+            message.setFrom(fromName + " <" + fromAddress + ">");
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
