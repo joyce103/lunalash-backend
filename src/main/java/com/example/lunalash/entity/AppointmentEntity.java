@@ -35,6 +35,11 @@ public class AppointmentEntity {
     @Column(name = "customer_phone", nullable = false, length = 20)
     private String customerPhone;
 
+    // 訪客用 Google 登入後建立的預約，會自動帶入已驗證過的 email (從 JWT 讀，不接受前端自填)；
+    // 匿名 (未登入) 建立的預約維持 null，一律用 queryCode 查詢
+    @Column(name = "customer_email", length = 255)
+    private String customerEmail;
+
     // 這筆預約對應的會員；建立時會自動用電話比對現有會員，比對不到就維持 null (訪客身分)，
     // 後台可以手動重新連結/取消連結，不強制一定要有會員
     @ManyToOne(fetch = FetchType.LAZY)
@@ -83,6 +88,9 @@ public class AppointmentEntity {
 
     public String getCustomerPhone() { return customerPhone; }
     public void setCustomerPhone(String customerPhone) { this.customerPhone = customerPhone; }
+
+    public String getCustomerEmail() { return customerEmail; }
+    public void setCustomerEmail(String customerEmail) { this.customerEmail = customerEmail; }
 
     public MemberEntity getMember() { return member; }
     public void setMember(MemberEntity member) { this.member = member; }

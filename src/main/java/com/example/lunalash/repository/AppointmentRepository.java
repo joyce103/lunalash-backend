@@ -21,6 +21,9 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 
     Optional<AppointmentEntity> findByQueryCode(String queryCode);
 
+    // 訪客用 Google 登入後查詢「我的預約」
+    List<AppointmentEntity> findByCustomerEmailOrderByAppointmentDateDescAppointmentTimeDesc(String customerEmail);
+
     // 用來算某天已經被核准（真的占用）的時段
     List<AppointmentEntity> findByAppointmentDateAndStatus(LocalDate appointmentDate, AppointmentStatus status);
 

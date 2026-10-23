@@ -63,7 +63,8 @@ public class SecurityConfig {
                 // 允許所有 OPTIONS 請求 (這是為了解決 Vue Axios 跨域探路的預檢請求)
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() 
                 
-                .requestMatchers("/api/auth/login").permitAll() // 登入 API 完全放行
+                .requestMatchers("/api/auth/login").permitAll() // 管理員登入 API 完全放行
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/google").permitAll() // 訪客 Google 登入 API 完全放行
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**", "/api/images/**").permitAll()
 
                 // 預約系統：訪客不需要登入就能查詢操作項目/月曆/時段，以及送出預約申請
@@ -72,6 +73,8 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments").permitAll()
                 // 客人用電話+查詢碼查詢預約狀態，也完全公開，但只放行這一支路徑，不放寬 /api/appointments/** 其他子路徑
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments/lookup").permitAll()
+                // 訪客用 Google 登入後查詢「我的預約」，只有 GUEST 角色的 token 能打，管理員跟匿名都不行
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/appointments/my").hasRole("GUEST")
 
                 // 其他所有 API 都必須要有合法 Token，且角色必須是 ADMIN。
                 // 之所以不是單純 .authenticated()：以後如果客人用 Google 登入也會拿到一張合法 JWT，

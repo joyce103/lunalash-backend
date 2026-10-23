@@ -57,8 +57,10 @@ public class AppointmentService {
         this.notificationService = notificationService;
     }
 
-    // 訪客送出預約：只建立 PENDING 狀態，不會佔用時段，等後台審核
-    public AppointmentPublicResponse createAppointment(AppointmentCreateRequest request) {
+    // 訪客送出預約：只建立 PENDING 狀態，不會佔用時段，等後台審核。
+    // guestEmail 是訪客用 Google 登入時、從已驗證過的 JWT 讀出來的 email；
+    // 未登入 (匿名) 建立預約時傳 null 即可，跟現有行為完全一樣
+    public AppointmentPublicResponse createAppointment(AppointmentCreateRequest request, String guestEmail) {
         List<OperationCatalogItemEntity> operationItems = operationCatalogRepo.findAllById(request.getOperationItemIds());
         if (operationItems.size() != request.getOperationItemIds().size()) {
             throw new IllegalArgumentException("有操作項目不存在，請重新整理頁面後再試一次");
@@ -86,6 +88,7 @@ public class AppointmentService {
         appointment.setAppointmentTime(request.getTime());
         appointment.setStatus(AppointmentStatus.PENDING);
         appointment.setQueryCode(generateUniqueQueryCode());
+        appointment.setCustomerEmail(guestEmail);
 
         // 用電話自動比對現有會員；比對不到就維持訪客身分 (member 保持 null)，後台可以再手動連結
         findMemberByPhone(request.getCustomerPhone()).ifPresent(appointment::setMember);
@@ -142,6 +145,14 @@ public class AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("查無預約，請確認電話與查詢碼"));
 
         return new AppointmentPublicResponse(appointment);
+    }
+
+    // 訪客用 Google 登入後查詢「我的預約」：email 是從已驗證過的 JWT 讀出來的，不是前端自己填的，
+    // 所以不用像 lookup() 那樣額外比對第二個欄位防猜測
+    public List<AppointmentPublicResponse> findByCustomerEmail(String customerEmail) {
+        return appointmentRepo.findByCustomerEmailOrderByAppointmentDateDescAppointmentTimeDesc(customerEmail).stream()
+                .map(AppointmentPublicResponse::new)
+                .toList();
     }
 
     // 會員電話欄位存的是純數字 (member.phone 長度限制 10 碼)，這裡把預約電話拿掉符號後再比對，
