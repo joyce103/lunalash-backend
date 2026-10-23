@@ -5,8 +5,9 @@ import com.example.lunalash.entity.AppointmentEntity;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-// 預約狀態一律透過 LINE 官方帳號通知客人，目前先只保留介面與存根實作 (LineNotificationService)，
-// 之後只要把 LINE Messaging API 的 Channel Access Token 接上、實作這幾個方法即可，
+// 預約狀態通知，實作見 AppointmentNotificationService：
+// Email 部分已經接上 Gmail SMTP 真的會寄信 (只有 appointment.customerEmail 不為 null 時才會寄)，
+// LINE 部分還只是存根，等之後把 LINE Messaging API 的 Channel Access Token 接上即可，
 // 不需要改動呼叫端 (AppointmentService / AppointmentReminderScheduler)
 public interface NotificationService {
 

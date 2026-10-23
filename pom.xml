@@ -127,6 +127,12 @@
 		    <version>2.8.0</version>
 		</dependency>
 
+		<!-- 預約通知信 (Gmail SMTP) -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>
