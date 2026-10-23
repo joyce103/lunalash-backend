@@ -73,7 +73,11 @@ public class SecurityConfig {
                 // 客人用電話+查詢碼查詢預約狀態，也完全公開，但只放行這一支路徑，不放寬 /api/appointments/** 其他子路徑
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments/lookup").permitAll()
 
-                .anyRequest().authenticated() // 其他所有 API 都必須要有合法 Token
+                // 其他所有 API 都必須要有合法 Token，且角色必須是 ADMIN。
+                // 之所以不是單純 .authenticated()：以後如果客人用 Google 登入也會拿到一張合法 JWT，
+                // 這裡用 hasRole("ADMIN") 明確擋住非管理員身分的 token 打進這些 API
+                // (目前這裡涵蓋的其實就是所有管理後台專用的路徑)
+                .anyRequest().hasRole("ADMIN")
             );
         
         // 把我們的 JWT 海關，安插在 Spring Security 預設的帳號密碼驗證器之前

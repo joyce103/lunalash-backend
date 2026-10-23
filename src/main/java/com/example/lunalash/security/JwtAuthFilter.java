@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -14,7 +16,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -37,12 +39,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             // 2. 如果有 Token，而且驗證是合法的
             if (jwt != null && jwtUtils.validateToken(jwt)) {
-                // 3. 從 Token 中把帳號 (username) 拿出來
+                // 3. 從 Token 中把帳號 (username) 和角色拿出來
                 String username = jwtUtils.getUsernameFromToken(jwt);
+                String role = jwtUtils.getRoleFromToken(jwt);
+
+                // role 為 null 代表是舊格式 token (改版前發出的)，當成沒有任何角色，
+                // 讓後面的 SecurityConfig 的 hasRole 判斷自然擋下來
+                List<GrantedAuthority> authorities = StringUtils.hasText(role)
+                        ? List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        : List.of();
 
                 // 4. 製作一張「Spring Security 內部專用」的通行證，並告訴系統這個人已經登入了
-                UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(username, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // 5. 把通行證放進 SecurityContext 中 (放行！)

@@ -46,8 +46,8 @@ public class AuthController {
             throw new UnauthorizedException("帳號或密碼錯誤");
         }
 
-        // 密碼正確，產生 Token
-        String token = jwtUtils.generateToken(admin.getUsername());
+        // 密碼正確，產生 Token (角色固定是 ADMIN；ADMIN/SUPER_ADMIN 的細分由 AdminService 另外查 DB 判斷)
+        String token = jwtUtils.generateToken(admin.getUsername(), "ADMIN");
         log.info("登入成功：{}", username);
 
         // 直接回傳資料本體
